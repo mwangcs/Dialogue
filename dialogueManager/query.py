@@ -19,9 +19,9 @@ BUSINESS_PATH = '/v2/business/'
 
 # OAuth credential placeholders that must be filled in by users.
 CONSUMER_KEY = 'e9NrxKYFM-wVFsBx3uJi2g'
-CONSUMER_SECRET = 'NONE' #HIDDEN
+CONSUMER_SECRET = 'EDMTYousZAWnCZxSkTx0V1GvsgQ'
 TOKEN = 'mBkE08GxFy0UHFGrKb87CmVTe2ylj7Ot'
-TOKEN_SECRET = 'NONE' #HIDDEN
+TOKEN_SECRET = 'YZ7zbtveK0b1VbCnfGhYfrmbUJs'
 
 
 def request(host, path, url_params=None):
