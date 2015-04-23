@@ -10,6 +10,7 @@
     <!-- Bootstrap core CSS -->
     <link href="lib/bootstrap.min.css" rel="stylesheet">
 	 <link href="lib/style.css" rel="stylesheet">
+   <script src="lib/script.js"></script>
 	
 	
   </head>
@@ -43,8 +44,14 @@
 		<hr class="colorgraph">
         <button class="btn btn-lg btn-primary btn-block" type="submit">Submit</button>
       </form>
+    <br>
+  <button class="btn btn-lg btn-primary btn-block" id="speak" onclick="speechSynthesis.speak(new SpeechSynthesisUtterance('<?php echo $_SESSION['message']; ?>'));" >Speak</button>
+  </div>
 
-    </div>
 
-  </body>
+
+</body>
 </html>
+
+
+

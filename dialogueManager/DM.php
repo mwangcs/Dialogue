@@ -478,7 +478,7 @@
 	$_SESSION['state'] = $newstate;
 	echo "<br>";
 	echo $newstate;
-	echo "<script>setTimeout(\"location.href = 'DMtest.php';\",1500);</script>";
+	echo "<script>setTimeout(\"location.href = 'DMtest.php?words=" . $_SESSION['message'] . "';\",1500);</script>";
 
 
 ?>
