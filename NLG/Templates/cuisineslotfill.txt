@@ -1,0 +1,6 @@
+## Cuisine, category slot fill ##
+What would you like to eat today.
+What cuisine are you in the mood for.
+What cuisine would you like to have.
+What kind of restaurant are you in the mood for.
+Do you have any preferences for cuisine?
