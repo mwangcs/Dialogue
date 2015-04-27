@@ -1,28 +1,14 @@
-  <html>
-  <title>
-    Yelp Voice Search Interface
-  </title>
+<html>
   <head>
     <link rel="stylesheet" href="microphone/microphone.min.css">
   </head>
   <body style="text-align: center;">
-    <table width="80%" height="60" bgcolor="#999999" align="center">
-		<tr><td><center>Titley Stuff Goes Here</center></td></tr>
-	</table>
-	<br><br>
-	
-	<center><div id="microphone"></div></center>
+    <center><div id="microphone"></div></center>
     <pre id="result"></pre>
     <div id="info"></div>
     <div id="error"></div>
     <script src="microphone/microphone.min.js"></script>
-	
-	<br><br>
-	<center><p>Output table goes here</p></center>
-	
-	<br><br>
-	<hr>
-	Powered by <img src="yelp-2c.png" height="20" width="40">
+
     <script>
       var mic = new Wit.Microphone(document.getElementById("microphone"));
       var info = function (msg) {
@@ -41,35 +27,19 @@
       mic.onaudioend = function () {
         info("Recording stopped, processing started");
       };
-      mic.onresult = function (intent, entities) {
-		//window.alert("Intent: "+JSON.stringify(intent));
-		//window.alert("Entities: "+JSON.stringify(entities));
-        var r = kv("intent", intent);
-		
+      mic.onresult = function (json, dummy) {
+        var r = kv("JSON", json);
 
-		
-        for (var k in entities) {
-          var e = entities[k];
-
-          if (!(e instanceof Array)) {
-            r += kv(k, e.value);
-          } else {
-            for (var i = 0; i < e.length; i++) {
-              r += kv(k, e[i].value);
-            }
-          }
+        if (toString.call(json) !== "[object String]") {
+              json= JSON.stringify(json);
         }
-		
-		var jsonStr = r.replace(/=/g,"\" : \"");
-		jsonStr = jsonStr.replace(/\n/g,"\", \"");
-		jsonStr = "{ \"" + jsonStr + "\" }";
-		jsonStr = jsonStr.replace("\", \"\"","\"");
-		window.alert(jsonStr);
-		utterance = new XMLHttpRequest();
-		utterance.open("POST", "DM.php", true);
-		utterance.setRequestHeader("Content-type", "application/json");
-		utterance.send(jsonStr);
+        request= new XMLHttpRequest();
+        request.open("POST", "test.php", true);
+        request.setRequestHeader("Content-type", "application/json");
+        request.send(json);
         document.getElementById("result").innerHTML = r;
+        setTimeout("location.href = 'test.php';", 200);
+
       };
       mic.onerror = function (err) {
         error("Error: " + err);
@@ -80,11 +50,9 @@
       mic.ondisconnected = function () {
         info("Microphone is not connected");
       };
-
-      mic.connect("XEAASZABJ2LELPWHDPHB3IDF26CB6LTL");
+      mic.connect("BKDL76AFW2R6OXS7QBCECA2CDM4KKK6Z");
       // mic.start();
       // mic.stop();
-
       function kv (k, v) {
         if (toString.call(v) !== "[object String]") {
           v = JSON.stringify(v);
