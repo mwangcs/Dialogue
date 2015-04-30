@@ -1,8 +1,8 @@
 <?php
 	session_start();
-	//require_once('yelapi.php');
+	
 	if(!$_SESSION['state']){
-		$state = $_GET['state'];
+		$state = "initial";
 		$_SESSION['searchArr'] = array (
 			"cuisine" => "",
 			"location" => "",
@@ -12,10 +12,42 @@
 	else{
 		$state = $_SESSION['state'];
 	}
-	$intent = $_POST['intent'];
-	$entity = $_POST['entity'];
-	$entityvalue = $_POST['entityvalue'];
+
+	echo "current state: " . $state . "<br>";
+
+	// $intent = $_POST['intent'];
+	// $entity = $_POST['entity'];
+	// $entityvalue = $_POST['entityvalue'];
 	$_SESSION['api_response'] = "";
+
+	if(isset($_POST['nlu'])) {
+		$json = $_POST['nlu'];
+		var_dump(json_decode($json, true));
+		echo "<br>";
+		$jfo = Json_decode($json);
+		$intent = $jfo->intent;
+		echo "<br>";
+		echo "intent: " . "<br>";
+		echo $intent;
+		echo "<br>";
+		$entities = $jfo->entities;
+		foreach ($entities as $entityName => $entityArr){
+			echo "entity: " . "<br>";
+			echo $entityName;
+			$entity = $entityName;
+			echo "<br>";
+			$entityvalue = $entityArr->value;
+			echo "entityvalue: " . "<br>";
+			echo $entityvalue;
+			echo "<br>";
+		}	
+		//echo "Yes!";
+	} 
+	else {
+		echo "Noooooooob!!";
+	}
+
+	
 
 	/*
 	 * For querying yelp api
@@ -478,7 +510,10 @@
 	$_SESSION['state'] = $newstate;
 	echo "<br>";
 	echo $newstate;
-	echo "<script>setTimeout(\"location.href = 'DMtest.php?words=" . $_SESSION['message'] . "';\",1500);</script>";
+
+	echo "<br>";
+	echo  "<button class=\"btn btn-lg btn-primary btn-block\" id=\"speak\" onclick=\"speechSynthesis.speak(new SpeechSynthesisUtterance('" . $_SESSION['message'] . "'));\" >Speak</button>";
+	//echo "<script>setTimeout(\"location.href = 'DMtest.php?words=" . $_SESSION['message'] . "';\",1500);</script>";
 
 
 ?>

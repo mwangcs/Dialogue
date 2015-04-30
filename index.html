@@ -7,7 +7,10 @@
     <pre id="result"></pre>
     <div id="info"></div>
     <div id="error"></div>
+    <p> System Response: <p>
+    <div id="response"></div>
     <script src="microphone/microphone.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
 
     <script>
       var mic = new Wit.Microphone(document.getElementById("microphone"));
@@ -16,6 +19,9 @@
       };
       var error = function (msg) {
         document.getElementById("error").innerHTML = msg;
+      };
+      var response = function (msg) {
+        document.getElementById("response").innerHTML = msg;
       };
       mic.onready = function () {
         info("Microphone is ready to record");
@@ -33,13 +39,14 @@
         if (toString.call(json) !== "[object String]") {
               json= JSON.stringify(json);
         }
-        request= new XMLHttpRequest();
-        request.open("POST", "test.php", true);
-        request.setRequestHeader("Content-type", "application/json");
-        request.send(json);
-        document.getElementById("result").innerHTML = r;
-        setTimeout("location.href = 'test.php';", 200);
-
+        $.ajax({
+          type: 'POST',
+          url: 'DM.php?',
+          data: {'nlu': json},
+          success: function(msg) {
+            response(msg);
+          }
+        });
       };
       mic.onerror = function (err) {
         error("Error: " + err);
@@ -51,8 +58,6 @@
         info("Microphone is not connected");
       };
       mic.connect("BKDL76AFW2R6OXS7QBCECA2CDM4KKK6Z");
-      // mic.start();
-      // mic.stop();
       function kv (k, v) {
         if (toString.call(v) !== "[object String]") {
           v = JSON.stringify(v);
