@@ -1,0 +1,5 @@
+near me	near you
+around me	around you
+nearby	nearby
+close by	close by
+in my area	in your area
