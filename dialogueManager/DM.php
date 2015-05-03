@@ -1,13 +1,18 @@
 <?php
 	session_start();
 	
+	$debug = true;
+
+	$restaurant_list = array();
+
 	if(!$_SESSION['state']){
 		$state = "initial";
 		$_SESSION['searchArr'] = array (
-			"cuisine" => "",
-			"location" => "",
-			"deals" => "",
-			"sorting" => "");
+			'search_query' => "",
+			'location' => "",
+			// "deals" => "",
+			// "sorting" => ""
+			);
 	}
 	else{
 		$state = $_SESSION['state'];
@@ -15,39 +20,45 @@
 
 	echo "current state: " . $state . "<br>";
 
-	// $intent = $_POST['intent'];
+	$intent = $_POST['intent'];
 	// $entity = $_POST['entity'];
 	// $entityvalue = $_POST['entityvalue'];
 	$_SESSION['api_response'] = "";
 
-	if(isset($_POST['nlu'])) {
-		$json = $_POST['nlu'];
-		var_dump(json_decode($json, true));
-		echo "<br>";
-		$jfo = Json_decode($json);
-		$intent = $jfo->intent;
-		echo "<br>";
-		echo "intent: " . "<br>";
-		echo $intent;
-		echo "<br>";
-		$entities = $jfo->entities;
-		foreach ($entities as $entityName => $entityArr){
-			echo "entity: " . "<br>";
-			echo $entityName;
-			$entity = $entityName;
-			echo "<br>";
-			$entityvalue = $entityArr->value;
-			echo "entityvalue: " . "<br>";
-			echo $entityvalue;
-			echo "<br>";
-		}	
-		//echo "Yes!";
-	} 
-	else {
-		echo "Noooooooob!!";
-	}
+	$entityArray = array();
+	$entityArray[$_POST['entity']] = $_POST['entityvalue'];
+	$entityArray[$_POST['entity2']] = $_POST['entityvalue2'];
 
-	
+	// if(isset($_POST['nlu'])) {
+	// 	$json = $_POST['nlu'];
+	// 	var_dump(json_decode($json, true));
+	// 	echo "<br>";
+	// 	$jfo = Json_decode($json);
+	// 	$outcome = $jfo->outcome;
+	// 	$intent = $outcome->intent;
+	// 	echo "<br>";
+	// 	echo "intent: " . "<br>";
+	// 	echo $intent;
+	// 	echo "<br>";
+	// 	$entities = $outcome->entities;
+	// 	foreach ($entities as $entityName => $entityArr){
+	// 		echo "entity: " . "<br>";
+	// 		echo $entityName;
+	// 		$entity = $entityName;
+	// 		echo "<br>";
+	// 		$entityvalue = $entityArr->value;
+	// 		$entityArray[$entity] = $entityvalue;
+	// 		echo "entityvalue: " . "<br>";
+	// 		echo $entityvalue;
+	// 		echo "<br>";
+	// 	}	
+	// 	//echo "Yes!";
+	// } 
+	// else {
+	// 	echo "Didn't get anything from Wit.AI!!";
+	// }
+
+	print_r($entityArray);
 
 	/*
 	 * For querying yelp api
@@ -76,9 +87,10 @@
 	 * Makes a request to the Yelp API and returns the response
 	 * 
 	 * @param    $host    The domain host of the API 
-	 * @param    $path    The path of the APi after the domain
+	 * @param    $path    The path of the API after the domain
 	 * @return   The JSON response from the request      
 	 */
+
 	function request($host, $path) {
 	    $unsigned_url = "http://" . $host . $path;
 
@@ -152,22 +164,22 @@
 	 */
 	function query_api($term, $location) {     
 	    $response = json_decode(search($term, $location));
-	    $business_id = $response->businesses[0]->id;
-	    
-	    print sprintf(
-	        "%d businesses found, querying business info for the top result \"%s\"\n\n",         
-	        count($response->businesses),
-	        $business_id
-	    );
-	    
-	    $response = get_business($business_id);
-	    
-	    print sprintf("Result for business \"%s\" found:\n", $business_id);
-	    $_SESSION['api_response'] =  $_SESSION['api_response'] . "Result for business " . $business_id . "found:<br>";
+	    //$business_id = $response->businesses[0]->id;
+	    $restaurant_list = new ArrayObject($response->businesses);
+	    display_list($response->businesses);
+	}
 
-	    print "$response\n";
-
-	    $_SESSION['api_response'] =  $_SESSION['api_response'] . $response . "<br> <br>";
+	function display_list($arr){
+		$restaurant_list = $arr;
+		print_r($restaurant_list);
+		echo "!!!!!!!!!!!!!!!!!!!!!!! <br>";
+		foreach($arr as $item){
+			// print_r($item);
+			// echo "<br>";
+			echo "<h1>" . $item->name  ."</h1>";
+			echo "<p>" . $item->phone  ."</p>";
+			echo "<img src =\"" . $item->image_url . "\" >";
+		}
 	}
 
 
@@ -175,266 +187,183 @@
 	 *state control
 	 */
 	$newstate = $_SESSION['state'];
+
+	/*
+	 * current state: initial
+	 */
+
 	if($state == 'initial'){
+
+		//empty the slots
+		$_SESSION['searchArr'] = array (
+			'search_query' => "",
+			'location' => "",
+			// "deals" => "",
+			// "sorting" => ""
+		);
+
+		if($debug){
+			echo "+++++++++++++++ 1 +++++++++++++ <br>";
+			echo "current state: " . $state . "<br>";
+			echo "current intent: " . $intent . "<br>";
+			print_r($_SESSION['searchArr']);
+			echo "<br>";
+		}
 		if($intent == 'restaurantSearch'){
+
+			foreach($entityArray as $entity_key => $entity_value){
+				foreach($_SESSION['searchArr'] as $key => &$value){
+					if($key == $entity_key){
+						$value = $entity_value;
+					}
+					else if($entity_key == "user_location" && $key == "location"){
+						$value = $entity_value;
+					}
+				}
+			}
+
 			$array =  new ArrayObject($_SESSION['searchArr']);
-			if($entity == 'cuisine'){
-				foreach($array as $key => &$value){
-					if($key == "cuisine"){
-						$value = $entityvalue;
-					}
+
+			$system_message = "Do you have other preferences?";
+			$allslotsfilled = true;
+			foreach($array as $key1 => $value1){
+				if($value1 === ""){
+				 	$system_message = "Do you have any preferences for " . $key1 . "?";
+					$allslotsfilled = false;
 				}
-				$_SESSION['searchArr'] = new ArrayObject($array);  
-				//$_SESSION['searchArr']["cuisine"] = $entityvalue;
-				$_SESSION['message'] = "Do you have any preferences for location?";
-				$newstate = 'filtering';
 			}
-			else if($entity == "location"){
-				foreach($array as $key => &$value){
-					if($key == "location"){
-						$value = $entityvalue;
-					}
-				}
-				$_SESSION['searchArr'] = new ArrayObject($array); 
-				//$_SESSION['searchArr']["location"] = $entityvalue;
-				$_SESSION['message'] = "Do you have any preferences for deals?";
-				$newstate = 'filtering';
-			}
-			else if($entity == "deals"){
-				foreach($array as $key => &$value){
-					if($key == "deals"){
-						$value = $entityvalue;
-					}
-				}
-				$_SESSION['searchArr'] = new ArrayObject($array); 
-				//$_SESSION['searchArr']["deals"] = $entityvalue;
-				$_SESSION['message'] = "How do you want to sort the results? ";
-			}
-			else if($entity == "sorting"){
-				foreach($array as $key => &$value){
-					if($key == "sorting"){
-						$value = $entityvalue;
-					}
-				}
-				$_SESSION['searchArr'] = new ArrayObject($array); 
-				//$_SESSION['searchArr']["sorting"] = $entityvalue;
-				$_SESSION['message'] = "Do you have any preferences for cuisine?";
-				$newstate = 'filtering';
+			if($allslotsfilled){
+				$newstate = 'select';
+				query_api($array["search_query"], $array["location"]);
+				$_SESSION['message'] = "Querying Yelp API. Pick a restaurant from the list!";
+				echo "size: " . sizeof($restaurant_list);
 			}
 			else{
-				$_SESSION['message'] = "Hi, how can I help you?";
 				$newstate = 'filtering';
+				$_SESSION['message'] = $system_message;
+			}
+
+			if($debug){
+				echo "+++++++++++++++ 2 +++++++++++++ <br>";
+				print_r($_SESSION['searchArr']);
+				echo "<br>";
 			}
 		}
 		else if($intent == 'return'){
+			$_SESSION['message'] = "This is the beginning. How can I help you!";
 			$newstate = 'initial';
 		}
 		else if($intent == 'finish'){
 			$_SESSION['message'] = "Good Bye!";
 			$newstate = 'finish';
 		}
-		else{
+		else if($intent == 'greet'){
 			$_SESSION['message'] = "Hi, how can I help you?";
 			$newstate = 'initial';
-
+		}
+		else{
+			$_SESSION['message'] = "I don't understand your request. How can I help you?";
+			$newstate = 'initial';
 		}
 	}
+
+	/*
+	 * current state: filtering
+	 */
+
+
 	else if($state =='filtering'){
+
+		if($debug){
+			echo "+++++++++++++++ 1 +++++++++++++ <br>";
+			echo "current state: " . $state . "<br>";
+			echo "current intent: " . $intent . "<br>";
+			print_r($_SESSION['searchArr']);
+			echo "<br>";
+		}
+
 		if($intent == 'restaurantSearch'){
+
+			foreach($entityArray as $entity_key => $entity_value){
+				foreach($_SESSION['searchArr'] as $key => &$value){
+					if($key == $entity_key){
+						$value = $entity_value;
+					}
+					else if($entity_key == "user_location" && $key == "location"){
+						$value = $entity_value;
+					}
+				}
+			}
+
 			$array =  new ArrayObject($_SESSION['searchArr']);
-			if($entity == "cuisine"){
-				foreach($array as $key => &$value){
-					if($key == "cuisine"){
-						$value = $entityvalue;
-					}
-				}
-				$_SESSION['searchArr'] = new ArrayObject($array);  
-				//$_SESSION['searchArr']["cuisine"] = $entityvalue;
-				$newstate = 'filtering';
-				$array =  new ArrayObject($_SESSION['searchArr']);
-			
-				foreach($array as $key => &$value){
-					if($key == "cuisine" && $value == ""){
-						$_SESSION['message'] = "Do you have any preferences for cuisine1?";
-						break;
-					}
-					else if($key == "location" && $value == ""){
-						$_SESSION['message'] = "Do you have any preferences for location1?";
-						break;
-					}
-					else if($key == "deals" && $value == ""){
-						$_SESSION['message'] = "Do you have any preferences for deals1?";	
-						break;
-					}
-					else if($key == "sorting" && $value == ""){
-						$_SESSION['message'] = "Do you have any preferences for sorting1?";	
-						break;
-					}
-					else{
-						$_SESSION['message'] = "Querying Yelp API for results!";
-						$newstate = 'select';
-						break;
-					}
-				}
-				// if($array["cuisine"] === ""){
-				// 	$_SESSION['message'] = "Do you have any preferences for cuisine1?";
-				// }
-				// else if($array["location"] === ""){
-				// 	$_SESSION['message'] = "Do you have any preferences for location1?";
-				// }
-				// else if($array["deals"] === ""){
-				// 	$_SESSION['message'] = "Do you have any preferences for deals1?";					
-				// }
-				// else if($array["sorting"] == ""){
-				// 	$_SESSION['message'] = "Do you have any preferences for cuisine1?";					
-				// }
-				// else{
-				// 	$_SESSION['message'] = "Querying Yelp API for results!";
-				// 	$newstate = 'select';
-				// }
-			}
-			else if($entity == "location"){
 
-				foreach($array as $key => &$value){
-					if($key == "location"){
-						$value = $entityvalue;
-					}
-				}
-				$_SESSION['searchArr'] = new ArrayObject($array);  
-
-				//$_SESSION['searchArr']["location"] = $entityvalue;
-				$newstate = 'filtering';
-
-				$array = $_SESSION['searchArr'];
-				foreach($array as $key => &$value){
-					if($key == "cuisine" && $value == ""){
-						$_SESSION['message'] = "Do you have any preferences for cuisine2?";
-						break;
-					}
-					else if($key == "location" && $value == ""){
-						$_SESSION['message'] = "Do you have any preferences for location2?";
-						break;
-					}
-					else if($key == "deals" && $value == ""){
-						$_SESSION['message'] = "Do you have any preferences for deals2?";	
-						break;
-					}
-					else if($key == "sorting" && $value == ""){
-						$_SESSION['message'] = "Do you have any preferences for sorting2?";	
-						break;
-					}
-					else{
-						$_SESSION['message'] = "Querying Yelp API for results! Please select a restaurant from the list!";
-
-						$term_user = "";
-						$location_user = "";
-						foreach($array as $key => &$value){
-							if($key == "cuisine"){
-								$term_user = $value;
-							}
-							else if($key == "location" ){
-								$location_user = $value;
-							}
-						}
-
-						query_api($term_user, $location_user);
-
-						$newstate = 'select';
-						break;
-					}
+			$system_message = "Do you have other preferences?";
+			$allslotsfilled = true;
+			foreach($array as $key1 => $value1){
+				if($value1 === ""){
+				 	$system_message = "Do you have any preferences for " . $key1 . "?";
+					$allslotsfilled = false;
 				}
 			}
-			else if($entity == "deals"){
-
-				foreach($array as $key => &$value){
-					if($key == "deals"){
-						$value = $entityvalue;
-					}
-				}
-				$_SESSION['searchArr'] = new ArrayObject($array); 
-
-				//$_SESSION['searchArr']["deals"] = $entityvalue;
-				$newstate = 'filtering';
-				$array = $_SESSION['searchArr'];
-				foreach($array as $key => &$value){
-					if($key == "cuisine" && $value == ""){
-						$_SESSION['message'] = "Do you have any preferences for cuisine3?";
-						break;
-					}
-					else if($key == "location" && $value == ""){
-						$_SESSION['message'] = "Do you have any preferences for location3?";
-						break;
-					}
-					else if($key == "deals" && $value == ""){
-						$_SESSION['message'] = "Do you have any preferences for deals3?";	
-						break;
-					}
-					else if($key == "sorting" && $value == ""){
-						$_SESSION['message'] = "Do you have any preferences for sorting3?";	
-						break;
-					}
-					else{
-						$_SESSION['message'] = "Querying Yelp API for results! ";
-						$newstate = 'select';
-						break;
-					}
-				}
-			}
-			else if($entity == "sorting"){
-
-				foreach($array as $key => &$value){
-					if($key == "sorting"){
-						$value = $entityvalue;
-					}
-				}
-				$_SESSION['searchArr'] = new ArrayObject($array); 
-
-				//$_SESSION['searchArr']["sorting"] = $entityvalue;
-				$newstate = 'filtering';
-				$array = $_SESSION['searchArr'];
-				foreach($array as $key => &$value){
-					if($key == "cuisine" && $value == ""){
-						$_SESSION['message'] = "Do you have any preferences for cuisine4?";
-						break;
-					}
-					else if($key == "location" && $value == ""){
-						$_SESSION['message'] = "Do you have any preferences for location4?";
-						break;
-					}
-					else if($key == "deals" && $value == ""){
-						$_SESSION['message'] = "Do you have any preferences for deals4?";	
-						break;
-					}
-					else if($key == "sorting" && $value == ""){
-						$_SESSION['message'] = "Do you have any preferences for sorting4?";	
-						break;
-					}
-					else{
-						$_SESSION['message'] = "Querying Yelp API for results!";
-						$newstate = 'select';
-						break;
-					}
-				}
+			if($allslotsfilled){
+				$newstate = 'select';
+				query_api($array["search_query"], $array["location"]);
+				$_SESSION['message'] = "Querying Yelp API. Pick a restaurant from the list!";
+				echo "size: " . sizeof($restaurant_list);
 			}
 			else{
-				$_SESSION['message'] = "This filter is not supported.";
-				$newstate = 'Filtering';
+				$newstate = 'filtering';
+				$_SESSION['message'] = $system_message;
+			}
+
+			if($debug){
+				echo "+++++++++++++++ 2 +++++++++++++ <br>";
+				print_r($_SESSION['searchArr']);
+				echo "<br>";
 			}
 		}
-		else{
+		else if($intent == 'return'){
+			$_SESSION['message'] = "This is the beginning. How can I help you!";
+			$newstate = 'initial';
+		}
+		else if($intent == 'finish'){
+			$_SESSION['message'] = "Good Bye!";
+			$newstate = 'finish';
+		}
+		else if($intent == 'greet'){
 			$_SESSION['message'] = "Hi, how can I help you?";
 			$newstate = 'initial';
-
+		}
+		else{
+			$_SESSION['message'] = "I don't understand your request. How can I help you?";
+			$newstate = 'initial';
 		}
 	}
+
+	/*
+	 * current state : select
+	 */
 	else if($state === 'select'){
+
+		if($debug){
+			echo "+++++++++++++++ 1 +++++++++++++ <br>";
+			echo "current state: " . $state . "<br>";
+			echo "current intent: " . $intent . "<br>";
+		}
+
 		if($intent === 'restaurantSelect'){
-			if($entity === 'ordinal'){
-				$_SESSION['message'] = "You selected" . $entityvalue . "restaurant on the list. What information do you want?";
-				$newstate = 'getinfo';
+
+			$select_flag = false;
+			foreach($entityArray as $entity_key => $entity_value){
+				if($entity_key === 'ordinal'){
+					$_SESSION['message'] = "You selected" . $entity_value . "restaurant on the list. What information do you want?";
+					$newstate = 'getinfo';
+					$select_flag = true;
+				}
 			}
-			else{
-				$_SESSION['message'] = "Cannot recognize you selection. Please select a restaurant from the list!";
+
+			if(!$select_flag){
+				$_SESSION['message'] = "Cannot recognize your selection. Please select a restaurant from the list!";
 				$newstate = 'select';
 			}
 		}
@@ -451,13 +380,31 @@
 		}
 	}
 	else if($state === 'getinfo'){
+		if($debug){
+			echo "+++++++++++++++ 1 +++++++++++++ <br>";
+			echo "current state: " . $state . "<br>";
+			echo "current intent: " . $intent . "<br>";
+		}
 		if($intent === 'restaurantInfo'){
+
 			if($entity === 'phoneRequest'){
 				$_SESSION['message'] = "You requested phone number. The phone number is ###-###-####.";
 				$newstate = 'options';
 			}
 			else if($entity === 'ratingRequest'){
-				$_SESSION['message'] = "You requested rating. The phone number is #.";
+				$_SESSION['message'] = "You requested rating. The rating is #.";
+				$newstate = 'options';
+			}
+			else if($entity === 'addressRequest'){
+				$_SESSION['message'] = "You requested address. ";
+				$newstate = 'options';
+			}
+			else if($entity === 'reviewRequest'){
+				$_SESSION['message'] = "You requested review. ";
+				$newstate = 'options';
+			}
+			else if($entity === 'isOpenRequest'){
+				$_SESSION['message'] = "You asked whether it is open. ";
 				$newstate = 'options';
 			}
 			else{
@@ -479,6 +426,11 @@
 
 	}
 	else if($state === 'options'){
+		if($debug){
+			echo "+++++++++++++++ 1 +++++++++++++ <br>";
+			echo "current state: " . $state . "<br>";
+			echo "current intent: " . $intent . "<br>";
+		}
 		if($intent === 'return'){
 			$newstate = 'initial';
 		}
@@ -491,6 +443,11 @@
 		}
 	}
 	else if($state === 'finish'){
+		if($debug){
+			echo "+++++++++++++++ 1 +++++++++++++ <br>";
+			echo "current state: " . $state . "<br>";
+			echo "current intent: " . $intent . "<br>";
+		}
 		if($intent === 'return'){
 			$newstate = 'initial';
 		}
@@ -501,8 +458,8 @@
 
 	}
 
-	echo "Search Slots info: <br>";
- 	echo "######1: " . $_SESSION['searchArr']["cuisine"] . "<br>";
+	echo "+++++++++++Search Slots info: <br>++++++++++++";
+ 	echo "######1: " . $_SESSION['searchArr']["search_query"] . "<br>";
     echo "######2: " . $_SESSION['searchArr']["location"]  . "<br>";
     echo "######3: " . $_SESSION['searchArr']["deals"] . "<br>";
     echo "######4: " . $_SESSION['searchArr']["sorting"]  . "<br>";
@@ -510,7 +467,7 @@
 	$_SESSION['state'] = $newstate;
 	echo "<br>";
 	echo $newstate;
-
+	echo $_SESSION['api_response'];
 	echo "<br>";
 	echo  "<button class=\"btn btn-lg btn-primary btn-block\" id=\"speak\" onclick=\"speechSynthesis.speak(new SpeechSynthesisUtterance('" . $_SESSION['message'] . "'));\" >Speak</button>";
 	//echo "<script>setTimeout(\"location.href = 'DMtest.php?words=" . $_SESSION['message'] . "';\",1500);</script>";

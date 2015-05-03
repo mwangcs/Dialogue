@@ -10,7 +10,6 @@
     <!-- Bootstrap core CSS -->
     <link href="lib/bootstrap.min.css" rel="stylesheet">
 	 <link href="lib/style.css" rel="stylesheet">
-   <script src="lib/script.js"></script>
 	
 	
   </head>
@@ -40,6 +39,14 @@
         <label for="entityvalue" class="sr-only">Entity Value</label>
         <input type="entityvalue" name="entityvalue" id="entityvalue" class="form-control input-lg" placeholder="Entity Value" required tabindex="3">
     </div>
+    <div class="form-group">
+        <label for="entity2" class="sr-only">Entity Type</label>
+        <input type="entity2" name="entity2" id="entity2" class="form-control input-lg" placeholder="Entity Type 2" required tabindex="3">
+    </div>
+    <div class="form-group">
+        <label for="entityvalue2" class="sr-only">Entity Value</label>
+        <input type="entityvalue2" name="entityvalue2" id="entityvalue2" class="form-control input-lg" placeholder="Entity Value 2" required tabindex="3">
+    </div>
     <br>
 		<hr class="colorgraph">
         <button class="btn btn-lg btn-primary btn-block" type="submit">Submit</button>
@@ -48,9 +55,7 @@
   <button class="btn btn-lg btn-primary btn-block" id="speak" onclick="speechSynthesis.speak(new SpeechSynthesisUtterance('<?php echo $_SESSION['message']; ?>'));" >Speak</button>
   </div>
 
-
-
-</body>
+  </body>
 </html>
 
 
