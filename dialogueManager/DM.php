@@ -1,8 +1,10 @@
 <?php
 	session_start();
+	ini_set('display_errors',"1");
 	
 	$debug = false;
 
+	$using_nlg = false;
 	if(!$_SESSION['state']){
 		$state = "initial";
 		$_SESSION['searchArr'] = array (
@@ -84,7 +86,6 @@
 	$TOKEN = 'mBkE08GxFy0UHFGrKb87CmVTe2ylj7Ot';
 	$TOKEN_SECRET = 'HIDDEN';
 
-
 	$API_HOST = 'api.yelp.com';
 	$DEFAULT_TERM = 'restaurant';
 	$DEFAULT_LOCATION = 'Columbia University';
@@ -149,7 +150,7 @@
 	    $url_params['term'] = $term ?: $GLOBALS['DEFAULT_TERM'];
 	    $url_params['location'] = $location?: $GLOBALS['DEFAULT_LOCATION'];
 	    $url_params['limit'] = $GLOBALS['SEARCH_LIMIT'];
-	    //$url_params['cll'] = "40.7988405, -73.96091559999999";
+  
 	    $search_path = $GLOBALS['SEARCH_PATH'] . "?" . http_build_query($url_params);
 	    
 	    return request($GLOBALS['API_HOST'], $search_path);
@@ -182,24 +183,49 @@
 
 	function display_list($arr){
 
+		echo "<table style=\"width: 400px; background: #DDDDDD; border-radius: 10px; border-collapse: collapse; border-style: hidden;\" class=\"center\">";
 		foreach($arr as $item){
 			// print_r($item);
 			// echo "<br>";
-			echo "<a target=\"_blank\" href=\"" . $item->url  ."\" ><h3>" . $item->name  ."</h3> </a>";
-			echo "<p>" . $item->phone  ."</p>";
-			echo "<img src =\"" . $item->rating_img_url . "\" > <br>";
-			echo "<img src =\"" . $item->image_url . "\" >";
-			echo "<br> <hr>";
+			echo " <tr style=\"border:3px solid white;\"> ";
+			echo " <td style=\"width: 100px;padding: 10px;border-radius:5px\"><img src=\"" . $item->image_url . "\" alt=\"Restaurant Image\"></td>";
+			echo "<td style=\"padding: 10px;vertical-align:top;\">";
+			echo "	<p style=\"font-size:90%;font-family: Verdana\";>";
+			echo "	<a href=\"" . $item->url . "\"><b>" . $item->name . "</b></a><br>";
+			echo  $item->location->display_address[0] . "<br> " . $item->location->display_address[1] . "," . $item->location->display_address[2] . "<br><br> ";
+			echo "	Rating: <img src=\"" . $item->rating_img_url . "\" alt=\"" . $item->rating . " stars\"> ";
+			echo "	</p></td> </tr> ";
 		}
+		echo "</table>";
 	}
 
 	function display_restaurant($item){
 
-		echo "<a target=\"_blank\" href=\"" . $item->url  ."\" ><h3>" . $item->name  ."</h3> </a>";
-		echo "<p>" . $item->phone  ."</p>";
-		echo "<img src =\"" . $item->rating_img_url . "\" > <br>";
-		echo "<img src =\"" . $item->image_url . "\" >";
-		echo "<br>";
+		echo "<table style=\"width: 400px; background: #DDDDDD; border-radius: 10px; border-collapse: collapse; border-style: hidden;\" class=\"center\">";
+		echo " <tr style=\"border:3px solid white;\"> ";
+		echo " <td style=\"width: 100px;padding: 10px;border-radius:5px\"><img src=\"" . $item->image_url . "\" alt=\"Restaurant Image\"></td>";
+		echo "<td style=\"padding: 10px;vertical-align:top;\">";
+		echo "	<p style=\"font-size:90%;font-family: Verdana\";>";
+		echo "	<a href=\"" . $item->url . "\"><b>" . $item->name . "</b></a><br>";
+		echo  $item->location->display_address[0] . "<br> " . $item->location->display_address[1] . "," . $item->location->display_address[2] . "<br><br> ";
+		echo "	Rating: <img src=\"" . $item->rating_img_url . "\" alt=\"" . $item->rating . " stars\"> ";
+		echo "	</p></td> </tr> ";
+		// <tr style="border:1px solid white;">
+		// <td style="width: 100px;padding: 10px;border-radius:5px"><img src="testimg.jpg" alt="Restaurant Image"></td>
+		// <td style="padding: 10px;vertical-align:top;">
+		// 	<p style="font-size:90%;font-family: Verdana";>
+		// 	<a href="http://m.yelp.com/biz/prosperity-dumpling-new-york"><b>Prosperity Dumpling</b></a><br>
+		// 	46 Eldridge St.<br>New York, NY 10002<br><br>
+		// 	Rating: <img src="http://s3-media2.fl.yelpcdn.com/assets/2/www/img/99493c12711e/ico/stars/v1/stars_4_half.png" alt="4.5 stars">
+		// 	</p>
+		// </td>
+		// </tr>
+		echo "</table>";
+		// echo "<a target=\"_blank\" href=\"" . $item->url  ."\" ><h3>" . $item->name  ."</h3> </a>";
+		// echo "<p>" . $item->phone  ."</p>";
+		// echo "<img src =\"" . $item->rating_img_url . "\" > <br>";
+		// echo "<img src =\"" . $item->image_url . "\" >";
+		// echo "<br>";
 	}
 	function reset_param(){
 		//empty the slots
@@ -242,7 +268,7 @@
 						$value = $entity_value;
 					}
 					else if($entity_key == "user_location" && $key == "location"){
-						$value = $entity_value;
+						$value = "Columbia University";
 					}
 				}
 			}
@@ -253,7 +279,24 @@
 			$allslotsfilled = true;
 			foreach($array as $key1 => $value1){
 				if($value1 === ""){
-				 	$system_message = "Do you have any preferences for " . $key1 . "?";
+					if($using_nlg){
+
+	    				$signed_url = "http://127.0.0.1:5000/analyse_utterance?utterance=eat&type=location";
+						$ch = curl_init($signed_url);
+						//curl_setopt($ch, CURLOPT_URL, "http://0.0.0.0:5000/analyse_utterance?utterance=eat&type=location");
+						curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+						curl_setopt($ch, CURLOPT_HEADER, 0);
+			
+						// execute the request
+						echo "printing system response: " . curl_exec($ch) . PHP_EOL;
+						print_r(curl_exec($ch));
+						$system_message = curl_exec($ch);
+						curl_close($ch);
+						//$system_message = http_get("http://127.0.0.1:5000/analyse_utterance?utterance=" . $user_utterance . "&type=location", array("timeout"=>1), $info);
+					}
+					else{
+				 		$system_message = "Do you have any preferences for " . $key1 . "?";
+				 	}
 					$allslotsfilled = false;
 				}
 			}
@@ -285,6 +328,9 @@
 			$_SESSION['message'] = "Hi, how can I help you?";
 			$newstate = 'initial';
 		}
+		else if($intent === 'returnStart'){
+			$newstate = 'initial';
+		}
 		else{
 			$_SESSION['message'] = "I don't understand your request. How can I help you?";
 			$newstate = 'initial';
@@ -314,7 +360,7 @@
 						$value = $entity_value;
 					}
 					else if($entity_key == "user_location" && $key == "location"){
-						$value = $entity_value;
+						$value = "Columbia University";
 					}
 				}
 			}
@@ -349,6 +395,9 @@
 			$_SESSION['message'] = "This is the beginning. How can I help you!";
 			$newstate = 'initial';
 		}
+		else if($intent === 'returnStart'){
+			$newstate = 'initial';
+		}
 		else if($intent == 'finished'){
 			$_SESSION['message'] = "Good Bye!";
 			$newstate = 'finish';
@@ -359,7 +408,7 @@
 		}
 		else{
 			$_SESSION['message'] = "I don't understand your request. How can I help you?";
-			$newstate = 'initial';
+			$newstate = 'filtering';
 		}
 	}
 
@@ -400,11 +449,72 @@
 				$newstate = 'select';
 			}
 		}
+		else if($intent === 'restaurantInfo'){
+
+			$info_flag = false;
+			foreach($entityArray as $entity_key => $entity_value){
+				if($debug){
+					echo "==============selected restaurant info =================";
+					print_r($_SESSION['selected_restaurant']);
+
+				}
+				if($entity_key == 'phoneRequest'){
+					$phone_number = $_SESSION['selected_restaurant']->display_phone;
+					$_SESSION['message'] = "You requested phone number. The phone number is: " . $phone_number;
+					$newstate = 'getinfo';
+					$info_flag = true;
+					break;
+				}
+				else if($entity_key == 'ratingRequest'){
+					$rating = $_SESSION['selected_restaurant']->rating;
+					$_SESSION['message'] = "You requested rating. The rating is: " . $rating . " stars";
+					$newstate = 'getinfo';
+					$info_flag = true;
+					break;
+				}
+				else if($entity_key == 'addressRequest'){
+					// $addressArr = $_SESSION['selected_restaurant']->location;
+
+					// foreach($addressArr as $addressComp){
+					// 	$address = $address . $addressComp . " ";
+					// }
+
+					$address = $_SESSION['selected_restaurant']->location->display_address[0] .
+							" " . $_SESSION['selected_restaurant']->location->display_address[1] .
+							" " . $_SESSION['selected_restaurant']->location->display_address[2];
+					$_SESSION['message'] = "You requested address. " . $address;
+					$newstate = 'getinfo';
+					$info_flag = true;
+					break;
+				}
+				else if($entity_key == 'reviewRequest'){
+					$review = $_SESSION['selected_restaurant']->snippet_text;
+					$_SESSION['message'] = "You requested review: " . $review;
+					$newstate = 'getinfo';
+					$info_flag = true;
+					break;
+				}
+				else if($entity_key == 'isOpenRequest'){
+					$_SESSION['message'] = "You asked whether it is open. ";
+					$newstate = 'getinfo';
+					$info_flag = true;
+					break;
+				}
+
+			}
+			if(!$info_flag){
+				$_SESSION['message'] = "Cannot recognize you request. What do you want to know about this restaurant?";
+				$newstate = 'getinfo';
+			}
+		}
 		else if($intent === 'return'){
-			display_list($_SESSION['restaurant_list']);
-			$newstate = 'select';
-			$_SESSION['message'] = "Pick a restaurant from the list!";
-			$_SESSION['selected_restaurant']  = array();
+			//display_list($_SESSION['restaurant_list']);
+			$newstate = 'initial';
+			$_SESSION['message'] = "How can I help you?";
+			//$_SESSION['selected_restaurant']  = array();
+		}
+		else if($intent === 'returnStart'){
+			$newstate = 'initial';
 		}
 		else if($intent === 'finished'){
 			$_SESSION['message'] = "Good Bye!";
@@ -436,7 +546,7 @@
 
 				}
 				if($entity_key == 'phoneRequest'){
-					$phone_number = $_SESSION['selected_restaurant']->phone;
+					$phone_number = $_SESSION['selected_restaurant']->display_phone;
 					$_SESSION['message'] = "You requested phone number. The phone number is: " . $phone_number;
 					$newstate = 'getinfo';
 					$info_flag = true;
@@ -450,7 +560,16 @@
 					break;
 				}
 				else if($entity_key == 'addressRequest'){
-					$_SESSION['message'] = "You requested address. ";
+					// $addressArr = $_SESSION['selected_restaurant']->location;
+
+					// foreach($addressArr as $addressComp){
+					// 	$address = $address . $addressComp . " ";
+					// }
+
+					$address = $_SESSION['selected_restaurant']->location->display_address[0] .
+							" " . $_SESSION['selected_restaurant']->location->display_address[1] .
+							" " . $_SESSION['selected_restaurant']->location->display_address[2];
+					$_SESSION['message'] = "You requested address. " . $address;
 					$newstate = 'getinfo';
 					$info_flag = true;
 					break;
@@ -476,11 +595,11 @@
 			}
 		}
 		else if($intent === 'return'){
-			$newstate = 'getinfo';
+			$newstate = 'select';
 			display_restaurant($_SESSION['selected_restaurant']);
 			$_SESSION['message'] = "What do you want to know about this restaurant?";
 		}
-		else if($intent === 'startover'){
+		else if($intent === 'returnStart'){
 			$newstate = 'initial';
 		}
 		else if($intent === 'finished'){
