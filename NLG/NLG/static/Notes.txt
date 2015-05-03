@@ -1,0 +1,41 @@
+ Great places to eat (near me/near CU/around me/close by --)
+ I want to eat (near ---)
+ I am in the mood to eat (at a rest near me)
+ Restaurants (near me/near CU)
+
+ Th values
+ location - 0.70
+ cuisine - 0.62
+
+
+
+########################################################################
+
+ if($intent === 'restaurantInfo'){
+			if($entity === 'phoneRequest'){
+				$_SESSION['message'] = "You requested phone number. The phone number is ###-###-####.";
+				$newstate = 'options';
+			}
+			else if($entity === 'ratingRequest'){
+				$_SESSION['message'] = "You requested rating. The rating is #.";
+				$newstate = 'options';
+			}
+			else if($entity === 'addressRequest'){
+				$_SESSION['message'] = "You requested address. ";
+				$newstate = 'options';
+			}
+			else if($entity === 'reviewRequest'){
+				$_SESSION['message'] = "You requested review. ";
+				$newstate = 'options';
+			}
+			else if($entity === 'isOpenRequest'){
+				$_SESSION['message'] = "You asked whether it is open. ";
+				$newstate = 'options';
+			}
+			else{
+				$_SESSION['message'] = "Cannot recognize you request. What do you want to know about this restaurant?";
+				$newstate = 'getinfo';
+			}
+		}
+
+########################################################################

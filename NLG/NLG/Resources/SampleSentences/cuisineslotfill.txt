@@ -1,0 +1,13 @@
+Great places to eat.	Is there a specific cuisine you'd like to eat today?
+I want to eat.	What would you like to have today.
+I am in the mood to eat. What cuisine are you in the mood for.
+Find me a restaurant.	What cuisine would you like to have.
+Find me a restaurant.	What kind of restaurant are you in the mood for.
+Find me a restaurant.	Do you have any preferences for cuisine?
+Find me a restaurant.   Is there a specific type of restaurant you're looking for?
+Eateries.	What kind of eatery would you like to eat in.
+Joints.	Is there a specific cuisine you would like to have today.
+Best places.	Is there a specific cuisine you're looking for.
+Restaurants. Is there a specific type of restaurant you're looking for?
+Great restaurants.	Is there a specific type of cuisine you're looking for?
+Best restaurants.   Is there a specific type of cuisine you're looking for?
