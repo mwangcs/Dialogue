@@ -1,7 +1,7 @@
 <?php
 	session_start();
 	
-	$debug = true;
+	$debug = false;
 
 	if(!$_SESSION['state']){
 		$state = "initial";
@@ -16,7 +16,7 @@
 		$state = $_SESSION['state'];
 	}
 
-	echo "current state: " . $state . "<br>";
+	
 
 	$intent = $_POST['intent'];
 	// $entity = $_POST['entity'];
@@ -24,39 +24,51 @@
 	$_SESSION['api_response'] = "";
 
 	$entityArray = array();
-	$entityArray[$_POST['entity']] = $_POST['entityvalue'];
-	$entityArray[$_POST['entity2']] = $_POST['entityvalue2'];
+	// $entityArray[$_POST['entity']] = $_POST['entityvalue'];
+	// $entityArray[$_POST['entity2']] = $_POST['entityvalue2'];
 
-	// if(isset($_POST['nlu'])) {
-	// 	$json = $_POST['nlu'];
-	// 	var_dump(json_decode($json, true));
-	// 	echo "<br>";
-	// 	$jfo = Json_decode($json);
-	// 	$outcome = $jfo->outcome;
-	// 	$intent = $outcome->intent;
-	// 	echo "<br>";
-	// 	echo "intent: " . "<br>";
-	// 	echo $intent;
-	// 	echo "<br>";
-	// 	$entities = $outcome->entities;
-	// 	foreach ($entities as $entityName => $entityArr){
-	// 		echo "entity: " . "<br>";
-	// 		echo $entityName;
-	// 		$entity = $entityName;
-	// 		echo "<br>";
-	// 		$entityvalue = $entityArr->value;
-	// 		$entityArray[$entity] = $entityvalue;
-	// 		echo "entityvalue: " . "<br>";
-	// 		echo $entityvalue;
-	// 		echo "<br>";
-	// 	}	
-	// 	//echo "Yes!";
-	// } 
-	// else {
-	// 	echo "Didn't get anything from Wit.AI!!";
-	// }
+	if(isset($_POST['nlu'])) {
+		$json = $_POST['nlu'];
+		var_dump(json_decode($json, true));
+		echo "<br>";
+		$jfo = Json_decode($json);
+		$outcome = $jfo->outcome;
+		$user_utterance = $jfo->msg_body;
+		$intent = $outcome->intent;
+		if($debug){
+			echo "<br>";
+			echo "intent: " . "<br>";
+			echo $intent;
+			echo "<br>";
+		}
+		$entities = $outcome->entities;
+		foreach ($entities as $entityName => $entityArr){
+			if($debug){
+				echo "entity: " . "<br>";
+				echo $entityName;
+				echo "<br>";
+			}
+			$entity = $entityName;
+			$entityvalue = $entityArr->value;
+			$entityArray[$entity] = $entityvalue;
+			if($debug){
+				echo "entityvalue: " . "<br>";
+				echo $entityvalue;
+				echo "<br>";
+			}
+		}	
+		//echo "Yes!";
+	} 
+	else {
+		echo "Didn't get anything from Wit.AI!!";
+	}
 
-	print_r($entityArray);
+	echo "current state: " . $state . "<br>";
+	echo "User utterance: " . $user_utterance . "<br>";
+
+	if($debug){
+		print_r($entityArray);
+	}
 
 	/*
 	 * For querying yelp api
@@ -68,14 +80,14 @@
 	// These credentials can be obtained from the 'Manage API Access' page in the
 	// developers documentation (http://www.yelp.com/developers)
 	$CONSUMER_KEY = 'e9NrxKYFM-wVFsBx3uJi2g';
-	$CONSUMER_SECRET = 'EDMTYousZAWnCZxSkTx0V1GvsgQ';
+	$CONSUMER_SECRET = 'HIDDEN';
 	$TOKEN = 'mBkE08GxFy0UHFGrKb87CmVTe2ylj7Ot';
-	$TOKEN_SECRET = 'YZ7zbtveK0b1VbCnfGhYfrmbUJs';
+	$TOKEN_SECRET = 'HIDDEN';
 
 
 	$API_HOST = 'api.yelp.com';
-	$DEFAULT_TERM = 'dinner';
-	$DEFAULT_LOCATION = 'San Francisco, CA';
+	$DEFAULT_TERM = 'restaurant';
+	$DEFAULT_LOCATION = 'Columbia University';
 	$SEARCH_LIMIT = 5;
 	$SEARCH_PATH = '/v2/search/';
 	$BUSINESS_PATH = '/v2/business/';
@@ -137,6 +149,7 @@
 	    $url_params['term'] = $term ?: $GLOBALS['DEFAULT_TERM'];
 	    $url_params['location'] = $location?: $GLOBALS['DEFAULT_LOCATION'];
 	    $url_params['limit'] = $GLOBALS['SEARCH_LIMIT'];
+	    //$url_params['cll'] = "40.7988405, -73.96091559999999";
 	    $search_path = $GLOBALS['SEARCH_PATH'] . "?" . http_build_query($url_params);
 	    
 	    return request($GLOBALS['API_HOST'], $search_path);
@@ -172,20 +185,32 @@
 		foreach($arr as $item){
 			// print_r($item);
 			// echo "<br>";
-			echo "<h1>" . $item->name  ."</h1>";
+			echo "<a target=\"_blank\" href=\"" . $item->url  ."\" ><h3>" . $item->name  ."</h3> </a>";
 			echo "<p>" . $item->phone  ."</p>";
-			echo "<img src =\"" . $item->rating_img_url . "\" >";
+			echo "<img src =\"" . $item->rating_img_url . "\" > <br>";
 			echo "<img src =\"" . $item->image_url . "\" >";
+			echo "<br> <hr>";
 		}
 	}
 
 	function display_restaurant($item){
 
-		echo "<h1>" . $item->name  ."</h1>";
+		echo "<a target=\"_blank\" href=\"" . $item->url  ."\" ><h3>" . $item->name  ."</h3> </a>";
 		echo "<p>" . $item->phone  ."</p>";
-		echo "<img src =\"" . $item->rating_img_url . "\" >";
+		echo "<img src =\"" . $item->rating_img_url . "\" > <br>";
 		echo "<img src =\"" . $item->image_url . "\" >";
-
+		echo "<br>";
+	}
+	function reset_param(){
+		//empty the slots
+		$_SESSION['searchArr'] = array (
+			'search_query' => "",
+			'location' => "",
+			// "deals" => "",
+			// "sorting" => ""
+		);
+		$_SESSION['restaurant_list'] = array();
+		$_SESSION['selected_restaurant']  = array();
 	}
 
 
@@ -200,13 +225,7 @@
 
 	if($state == 'initial'){
 
-		//empty the slots
-		$_SESSION['searchArr'] = array (
-			'search_query' => "",
-			'location' => "",
-			// "deals" => "",
-			// "sorting" => ""
-		);
+		reset_param();
 
 		if($debug){
 			echo "+++++++++++++++ 1 +++++++++++++ <br>";
@@ -330,7 +349,7 @@
 			$_SESSION['message'] = "This is the beginning. How can I help you!";
 			$newstate = 'initial';
 		}
-		else if($intent == 'finish'){
+		else if($intent == 'finished'){
 			$_SESSION['message'] = "Good Bye!";
 			$newstate = 'finish';
 		}
@@ -382,9 +401,12 @@
 			}
 		}
 		else if($intent === 'return'){
-			$newstate = 'initial';
+			display_list($_SESSION['restaurant_list']);
+			$newstate = 'select';
+			$_SESSION['message'] = "Pick a restaurant from the list!";
+			$_SESSION['selected_restaurant']  = array();
 		}
-		else if($intent === 'finish'){
+		else if($intent === 'finished'){
 			$_SESSION['message'] = "Good Bye!";
 			$newstate = 'finish';
 		}
@@ -454,9 +476,14 @@
 			}
 		}
 		else if($intent === 'return'){
+			$newstate = 'getinfo';
+			display_restaurant($_SESSION['selected_restaurant']);
+			$_SESSION['message'] = "What do you want to know about this restaurant?";
+		}
+		else if($intent === 'startover'){
 			$newstate = 'initial';
 		}
-		else if($intent === 'finish'){
+		else if($intent === 'finished'){
 			$_SESSION['message'] = "Good Bye!";
 			$newstate = 'finish';
 		}
@@ -472,10 +499,10 @@
 			echo "current state: " . $state . "<br>";
 			echo "current intent: " . $intent . "<br>";
 		}
-		if($intent === 'return'){
+		if($intent == 'return'){
 			$newstate = 'initial';
 		}
-		else if($intent === 'finish'){
+		else if($intent == 'finished'){
 			$_SESSION['message'] = "Good Bye!";
 			$newstate = 'finish';
 		}
@@ -483,13 +510,16 @@
 			$_SESSION['message'] = "What do you want to know about this restaurant?";
 		}
 	}
-	else if($state === 'finish'){
+	else if($state == 'finished'){
+
+		reset_param();
+
 		if($debug){
 			echo "+++++++++++++++ 1 +++++++++++++ <br>";
 			echo "current state: " . $state . "<br>";
 			echo "current intent: " . $intent . "<br>";
 		}
-		if($intent === 'return'){
+		if($intent ==='return'){
 			$newstate = 'initial';
 		}
 		else {
@@ -509,9 +539,12 @@
 	echo $_SESSION['message'];
 	$_SESSION['state'] = $newstate;
 	echo "<br>";
-	echo $newstate;
-	echo $_SESSION['api_response'];
-	echo "<br>";
+	echo "new state: " . $newstate . "<br>";
+	if($debug){
+		echo $_SESSION['api_response'];
+		echo "<br>";
+	}
+	//echo  "<script> speechSynthesis.speak(SpeechSynthesisUtterance('Hello World'));</script>";
 	echo  "<button class=\"btn btn-lg btn-primary btn-block\" id=\"speak\" onclick=\"speechSynthesis.speak(new SpeechSynthesisUtterance('" . $_SESSION['message'] . "'));\" >Speak</button>";
 	//echo "<script>setTimeout(\"location.href = 'DMtest.php?words=" . $_SESSION['message'] . "';\",1500);</script>";
 
