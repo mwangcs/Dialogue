@@ -3,8 +3,6 @@
 	
 	$debug = true;
 
-	$restaurant_list = array();
-
 	if(!$_SESSION['state']){
 		$state = "initial";
 		$_SESSION['searchArr'] = array (
@@ -165,21 +163,29 @@
 	function query_api($term, $location) {     
 	    $response = json_decode(search($term, $location));
 	    //$business_id = $response->businesses[0]->id;
-	    $restaurant_list = new ArrayObject($response->businesses);
-	    display_list($response->businesses);
+	    $_SESSION['restaurant_list'] = new ArrayObject($response->businesses);
+	    display_list($_SESSION['restaurant_list']);
 	}
 
 	function display_list($arr){
-		$restaurant_list = $arr;
-		print_r($restaurant_list);
-		echo "!!!!!!!!!!!!!!!!!!!!!!! <br>";
+
 		foreach($arr as $item){
 			// print_r($item);
 			// echo "<br>";
 			echo "<h1>" . $item->name  ."</h1>";
 			echo "<p>" . $item->phone  ."</p>";
+			echo "<img src =\"" . $item->rating_img_url . "\" >";
 			echo "<img src =\"" . $item->image_url . "\" >";
 		}
+	}
+
+	function display_restaurant($item){
+
+		echo "<h1>" . $item->name  ."</h1>";
+		echo "<p>" . $item->phone  ."</p>";
+		echo "<img src =\"" . $item->rating_img_url . "\" >";
+		echo "<img src =\"" . $item->image_url . "\" >";
+
 	}
 
 
@@ -236,7 +242,6 @@
 				$newstate = 'select';
 				query_api($array["search_query"], $array["location"]);
 				$_SESSION['message'] = "Querying Yelp API. Pick a restaurant from the list!";
-				echo "size: " . sizeof($restaurant_list);
 			}
 			else{
 				$newstate = 'filtering';
@@ -309,7 +314,6 @@
 				$newstate = 'select';
 				query_api($array["search_query"], $array["location"]);
 				$_SESSION['message'] = "Querying Yelp API. Pick a restaurant from the list!";
-				echo "size: " . sizeof($restaurant_list);
 			}
 			else{
 				$newstate = 'filtering';
@@ -343,6 +347,7 @@
 	/*
 	 * current state : select
 	 */
+
 	else if($state === 'select'){
 
 		if($debug){
@@ -357,6 +362,15 @@
 			foreach($entityArray as $entity_key => $entity_value){
 				if($entity_key === 'ordinal'){
 					$_SESSION['message'] = "You selected" . $entity_value . "restaurant on the list. What information do you want?";
+
+					if($debug){
+						echo "+++++++++++++++ display_restaurant +++++++++++++ <br>";
+						print_r($_SESSION['restaurant_list'][$entity_value-1]);
+					}
+
+					display_restaurant($_SESSION['restaurant_list'][$entity_value-1]);
+					$_SESSION['selected_restaurant'] = $_SESSION['restaurant_list'][$entity_value-1];
+
 					$newstate = 'getinfo';
 					$select_flag = true;
 				}
@@ -379,6 +393,11 @@
 			$newstate = 'select';
 		}
 	}
+
+	/*
+	 * current state : gerInfo
+	 */
+
 	else if($state === 'getinfo'){
 		if($debug){
 			echo "+++++++++++++++ 1 +++++++++++++ <br>";
@@ -387,27 +406,49 @@
 		}
 		if($intent === 'restaurantInfo'){
 
-			if($entity === 'phoneRequest'){
-				$_SESSION['message'] = "You requested phone number. The phone number is ###-###-####.";
-				$newstate = 'options';
+			$info_flag = false;
+			foreach($entityArray as $entity_key => $entity_value){
+				if($debug){
+					echo "==============selected restaurant info =================";
+					print_r($_SESSION['selected_restaurant']);
+
+				}
+				if($entity_key == 'phoneRequest'){
+					$phone_number = $_SESSION['selected_restaurant']->phone;
+					$_SESSION['message'] = "You requested phone number. The phone number is: " . $phone_number;
+					$newstate = 'getinfo';
+					$info_flag = true;
+					break;
+				}
+				else if($entity_key == 'ratingRequest'){
+					$rating = $_SESSION['selected_restaurant']->rating;
+					$_SESSION['message'] = "You requested rating. The rating is: " . $rating . " stars";
+					$newstate = 'getinfo';
+					$info_flag = true;
+					break;
+				}
+				else if($entity_key == 'addressRequest'){
+					$_SESSION['message'] = "You requested address. ";
+					$newstate = 'getinfo';
+					$info_flag = true;
+					break;
+				}
+				else if($entity_key == 'reviewRequest'){
+					$review = $_SESSION['selected_restaurant']->snippet_text;
+					$_SESSION['message'] = "You requested review: " . $review;
+					$newstate = 'getinfo';
+					$info_flag = true;
+					break;
+				}
+				else if($entity_key == 'isOpenRequest'){
+					$_SESSION['message'] = "You asked whether it is open. ";
+					$newstate = 'getinfo';
+					$info_flag = true;
+					break;
+				}
+
 			}
-			else if($entity === 'ratingRequest'){
-				$_SESSION['message'] = "You requested rating. The rating is #.";
-				$newstate = 'options';
-			}
-			else if($entity === 'addressRequest'){
-				$_SESSION['message'] = "You requested address. ";
-				$newstate = 'options';
-			}
-			else if($entity === 'reviewRequest'){
-				$_SESSION['message'] = "You requested review. ";
-				$newstate = 'options';
-			}
-			else if($entity === 'isOpenRequest'){
-				$_SESSION['message'] = "You asked whether it is open. ";
-				$newstate = 'options';
-			}
-			else{
+			if(!$info_flag){
 				$_SESSION['message'] = "Cannot recognize you request. What do you want to know about this restaurant?";
 				$newstate = 'getinfo';
 			}
@@ -458,11 +499,13 @@
 
 	}
 
-	echo "+++++++++++Search Slots info: <br>++++++++++++";
- 	echo "######1: " . $_SESSION['searchArr']["search_query"] . "<br>";
-    echo "######2: " . $_SESSION['searchArr']["location"]  . "<br>";
-    echo "######3: " . $_SESSION['searchArr']["deals"] . "<br>";
-    echo "######4: " . $_SESSION['searchArr']["sorting"]  . "<br>";
+	if($debug){
+		echo "+++++++++++Search Slots info: <br>++++++++++++";
+	 	echo "######1: " . $_SESSION['searchArr']["search_query"] . "<br>";
+	    echo "######2: " . $_SESSION['searchArr']["location"]  . "<br>";
+	    echo "######3: " . $_SESSION['searchArr']["deals"] . "<br>";
+	    echo "######4: " . $_SESSION['searchArr']["sorting"]  . "<br>";
+	}
 	echo $_SESSION['message'];
 	$_SESSION['state'] = $newstate;
 	echo "<br>";
