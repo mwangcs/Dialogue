@@ -1,10 +1,12 @@
 <?php
 	session_start();
 	ini_set('display_errors',"1");
-	
+	set_time_limit(0);
 	$debug = false;
+	$debug_nlg = true;
 
-	$using_nlg = false;
+	$using_nlg = true;
+
 	if(!$_SESSION['state']){
 		$state = "initial";
 		$_SESSION['searchArr'] = array (
@@ -18,7 +20,6 @@
 		$state = $_SESSION['state'];
 	}
 
-	
 
 	$intent = $_POST['intent'];
 	// $entity = $_POST['entity'];
@@ -31,8 +32,10 @@
 
 	if(isset($_POST['nlu'])) {
 		$json = $_POST['nlu'];
-		var_dump(json_decode($json, true));
-		echo "<br>";
+		if($debug){
+			var_dump(json_decode($json, true));
+			echo "<br>";
+		}
 		$jfo = Json_decode($json);
 		$outcome = $jfo->outcome;
 		$user_utterance = $jfo->msg_body;
@@ -65,7 +68,9 @@
 		echo "Didn't get anything from Wit.AI!!";
 	}
 
-	echo "current state: " . $state . "<br>";
+	if($debug){
+		echo "current state: " . $state . "<br>";
+	}
 	echo "User utterance: " . $user_utterance . "<br>";
 
 	if($debug){
@@ -82,9 +87,9 @@
 	// These credentials can be obtained from the 'Manage API Access' page in the
 	// developers documentation (http://www.yelp.com/developers)
 	$CONSUMER_KEY = 'e9NrxKYFM-wVFsBx3uJi2g';
-	$CONSUMER_SECRET = 'HIDDEN';
+	$CONSUMER_SECRET = 'EDMTYousZAWnCZxSkTx0V1GvsgQ';
 	$TOKEN = 'mBkE08GxFy0UHFGrKb87CmVTe2ylj7Ot';
-	$TOKEN_SECRET = 'HIDDEN';
+	$TOKEN_SECRET = 'YZ7zbtveK0b1VbCnfGhYfrmbUJs';
 
 	$API_HOST = 'api.yelp.com';
 	$DEFAULT_TERM = 'restaurant';
@@ -174,6 +179,7 @@
 	 * @param    $term        The search term to query
 	 * @param    $location    The location of the business to query
 	 */
+
 	function query_api($term, $location) {     
 	    $response = json_decode(search($term, $location));
 	    //$business_id = $response->businesses[0]->id;
@@ -183,13 +189,13 @@
 
 	function display_list($arr){
 
-		echo "<table style=\"width: 400px; background: #DDDDDD; border-radius: 10px; border-collapse: collapse; border-style: hidden;\" class=\"center\">";
+		echo "<table class=\"restauranttbl\">";
 		foreach($arr as $item){
 			// print_r($item);
 			// echo "<br>";
-			echo " <tr style=\"border:3px solid white;\"> ";
-			echo " <td style=\"width: 100px;padding: 10px;border-radius:5px\"><img src=\"" . $item->image_url . "\" alt=\"Restaurant Image\"></td>";
-			echo "<td style=\"padding: 10px;vertical-align:top;\">";
+			echo " <tr class=\"restaurant\"> ";
+			echo " <td class=\"restaurantimg\"><img src=\"" . $item->image_url . "\" alt=\"Restaurant Image\"></td>";
+			echo " <td class=\"restauranttxt\">";
 			echo "	<p style=\"font-size:90%;font-family: Verdana\";>";
 			echo "	<a href=\"" . $item->url . "\"><b>" . $item->name . "</b></a><br>";
 			echo  $item->location->display_address[0] . "<br> " . $item->location->display_address[1] . "," . $item->location->display_address[2] . "<br><br> ";
@@ -201,32 +207,18 @@
 
 	function display_restaurant($item){
 
-		echo "<table style=\"width: 400px; background: #DDDDDD; border-radius: 10px; border-collapse: collapse; border-style: hidden;\" class=\"center\">";
-		echo " <tr style=\"border:3px solid white;\"> ";
-		echo " <td style=\"width: 100px;padding: 10px;border-radius:5px\"><img src=\"" . $item->image_url . "\" alt=\"Restaurant Image\"></td>";
-		echo "<td style=\"padding: 10px;vertical-align:top;\">";
+		echo "<table class=\"restauranttbl\">";
+		echo " <tr class=\"restaurant\"> ";
+		echo " <td class=\"restaurantimg\"><img src=\"" . $item->image_url . "\" alt=\"Restaurant Image\"></td>";
+		echo "<td class=\"restauranttxt\">";
 		echo "	<p style=\"font-size:90%;font-family: Verdana\";>";
 		echo "	<a href=\"" . $item->url . "\"><b>" . $item->name . "</b></a><br>";
 		echo  $item->location->display_address[0] . "<br> " . $item->location->display_address[1] . "," . $item->location->display_address[2] . "<br><br> ";
 		echo "	Rating: <img src=\"" . $item->rating_img_url . "\" alt=\"" . $item->rating . " stars\"> ";
 		echo "	</p></td> </tr> ";
-		// <tr style="border:1px solid white;">
-		// <td style="width: 100px;padding: 10px;border-radius:5px"><img src="testimg.jpg" alt="Restaurant Image"></td>
-		// <td style="padding: 10px;vertical-align:top;">
-		// 	<p style="font-size:90%;font-family: Verdana";>
-		// 	<a href="http://m.yelp.com/biz/prosperity-dumpling-new-york"><b>Prosperity Dumpling</b></a><br>
-		// 	46 Eldridge St.<br>New York, NY 10002<br><br>
-		// 	Rating: <img src="http://s3-media2.fl.yelpcdn.com/assets/2/www/img/99493c12711e/ico/stars/v1/stars_4_half.png" alt="4.5 stars">
-		// 	</p>
-		// </td>
-		// </tr>
 		echo "</table>";
-		// echo "<a target=\"_blank\" href=\"" . $item->url  ."\" ><h3>" . $item->name  ."</h3> </a>";
-		// echo "<p>" . $item->phone  ."</p>";
-		// echo "<img src =\"" . $item->rating_img_url . "\" > <br>";
-		// echo "<img src =\"" . $item->image_url . "\" >";
-		// echo "<br>";
 	}
+
 	function reset_param(){
 		//empty the slots
 		$_SESSION['searchArr'] = array (
@@ -239,6 +231,27 @@
 		$_SESSION['selected_restaurant']  = array();
 	}
 
+	function get_nlg_response($url){
+		$url = str_replace(" ","%20", $url);
+		$ch = curl_init($url);
+		//curl_setopt($ch, CURLOPT_URL, "http://0.0.0.0:5000/analyse_utterance?utterance=eat&type=location");
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 200);
+		$message = curl_exec($ch);
+		if(!$message){
+			return false;
+		}
+		$httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		if(!($httpcode=="200")){
+			return false;
+		}
+		if($message == "500 error" || $message == "404 error"){
+			return false;
+		}
+		curl_close($ch);
+		return $message;
+	}
 
 	/*
 	 *state control
@@ -280,21 +293,10 @@
 			foreach($array as $key1 => $value1){
 				if($value1 === ""){
 					if($using_nlg){
-
-	    				$signed_url = "http://127.0.0.1:5000/analyse_utterance?utterance=eat&type=location";
-						$ch = curl_init($signed_url);
-						//curl_setopt($ch, CURLOPT_URL, "http://0.0.0.0:5000/analyse_utterance?utterance=eat&type=location");
-						curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-						curl_setopt($ch, CURLOPT_HEADER, 0);
-			
-						// execute the request
-						echo "printing system response: " . curl_exec($ch) . PHP_EOL;
-						print_r(curl_exec($ch));
-						$system_message = curl_exec($ch);
-						curl_close($ch);
-						//$system_message = http_get("http://127.0.0.1:5000/analyse_utterance?utterance=" . $user_utterance . "&type=location", array("timeout"=>1), $info);
+						$system_message = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/analyse_utterance?utterance=" . $user_utterance . "&type=" . $key1);
 					}
-					else{
+					if(!$using_nlg || !$system_message){
+						if($debug_nlg){ echo "WARNING: Using Built-in responses!!!";}
 				 		$system_message = "Do you have any preferences for " . $key1 . "?";
 				 	}
 					$allslotsfilled = false;
@@ -303,7 +305,15 @@
 			if($allslotsfilled){
 				$newstate = 'select';
 				query_api($array["search_query"], $array["location"]);
-				$_SESSION['message'] = "Querying Yelp API. Pick a restaurant from the list!";
+				if($using_nlg){
+					$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/displayRestaurant?utterance=" . $user_utterance);
+				}
+				
+				if(!$using_nlg || !$message_temp){
+					if($debug_nlg){ echo "WARNING: Using Built-in responses!!!";}
+					$message_temp = "Here is a list of restaurants. Pick a restaurant from the list!";
+				}
+				$_SESSION['message'] = $message_temp;
 			}
 			else{
 				$newstate = 'filtering';
@@ -320,19 +330,62 @@
 			$_SESSION['message'] = "This is the beginning. How can I help you!";
 			$newstate = 'initial';
 		}
-		else if($intent == 'finish'){
-			$_SESSION['message'] = "Good Bye!";
+		else if($intent == 'finished'){
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/goodbye");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ echo "WARNING: Using Built-in responses!!!";}
+				$message_temp = "Good Bye!";
+			}
+			$_SESSION['message'] = $message_temp;
 			$newstate = 'finish';
 		}
 		else if($intent == 'greet'){
-			$_SESSION['message'] = "Hi, how can I help you?";
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/greeting");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ 
+					echo "WARNING: Using Built-in responses!!!";
+				}
+				$message_temp = "Hi, how can I help you?";
+			}
+			$_SESSION['message'] = $message_temp;
 			$newstate = 'initial';
 		}
 		else if($intent === 'returnStart'){
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/greeting");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ 
+					echo "WARNING: Using Built-in responses!!!";
+				}
+				$message_temp = "Hi, how can I help you?";
+			}
+			$_SESSION['message'] = $message_temp;
 			$newstate = 'initial';
 		}
+		else if($intent === 'UNKNOWN'){
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/clarification");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ echo "WARNING: Using Built-in responses!!!";}
+				$message_temp = "I don't understand your request. Can you repeat that?";
+			}
+			$_SESSION['message'] = $message_temp;
+		}
 		else{
-			$_SESSION['message'] = "I don't understand your request. How can I help you?";
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/clarification");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ echo "WARNING: Using Built-in responses!!!";}
+				$message_temp = "I don't understand your request. Can you repeat that?";
+			}
+			$_SESSION['message'] = $message_temp;
 			$newstate = 'initial';
 		}
 	}
@@ -371,14 +424,27 @@
 			$allslotsfilled = true;
 			foreach($array as $key1 => $value1){
 				if($value1 === ""){
-				 	$system_message = "Do you have any preferences for " . $key1 . "?";
+				 	if($using_nlg){
+						$system_message = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/analyse_utterance?utterance=" . $user_utterance . "&type=" . $key1);
+					}
+					if(!$using_nlg || !$system_message){
+						if($debug_nlg){ echo "WARNING: Using Built-in responses!!!";}
+				 		$system_message = "Do you have any preferences for " . $key1 . "?";
+				 	}
 					$allslotsfilled = false;
 				}
 			}
 			if($allslotsfilled){
 				$newstate = 'select';
 				query_api($array["search_query"], $array["location"]);
-				$_SESSION['message'] = "Querying Yelp API. Pick a restaurant from the list!";
+				if($using_nlg){
+					$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/displayRestaurant?utterance=" . $user_utterance);
+				}
+				if(!$using_nlg || !$message_temp){
+					if($debug_nlg){ echo "WARNING: Using Built-in responses!!!";}
+					$message_temp = "Here is a list of restaurants. Pick a restaurant from the list!";
+				}
+				$_SESSION['message'] = $message_temp;
 			}
 			else{
 				$newstate = 'filtering';
@@ -392,22 +458,74 @@
 			}
 		}
 		else if($intent == 'return'){
-			$_SESSION['message'] = "This is the beginning. How can I help you!";
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/greeting");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ 
+					echo "WARNING: Using Built-in responses!!!";
+				}
+				$message_temp = "Hi, how can I help you?";
+			}
+			$_SESSION['message'] = $message_temp;
 			$newstate = 'initial';
 		}
 		else if($intent === 'returnStart'){
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/greeting");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ 
+					echo "WARNING: Using Built-in responses!!!";
+				}
+				$message_temp = "Hi, how can I help you?";
+			}
+			$_SESSION['message'] = $message_temp;
 			$newstate = 'initial';
 		}
 		else if($intent == 'finished'){
-			$_SESSION['message'] = "Good Bye!";
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/goodbye");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ echo "WARNING: Using Built-in responses!!!";}
+				$message_temp = "Good Bye!";
+			}
+			$_SESSION['message'] = $message_temp;
 			$newstate = 'finish';
 		}
 		else if($intent == 'greet'){
-			$_SESSION['message'] = "Hi, how can I help you?";
+
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/greeting");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ echo "WARNING: Using Built-in responses!!!";}
+				$message_temp = "Hi, how can I help you?";
+			}
+			$_SESSION['message'] = $message_temp;
 			$newstate = 'initial';
 		}
+		else if($intent === 'UNKNOWN'){
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/clarification");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ echo "WARNING: Using Built-in responses!!!";}
+				$message_temp = "I don't understand your request. Can you repeat that?";
+			}
+			$_SESSION['message'] = $message_temp;
+		}
 		else{
-			$_SESSION['message'] = "I don't understand your request. How can I help you?";
+			if($using_nlg){
+				$message_temp  = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/clarification");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ echo "WARNING: Using Built-in responses!!!";}
+				$message_temp  = "I don't understand your request. Can you repeat that?";
+			}
+			$_SESSION['message'] = $message_temp;
+
 			$newstate = 'filtering';
 		}
 	}
@@ -429,11 +547,19 @@
 			$select_flag = false;
 			foreach($entityArray as $entity_key => $entity_value){
 				if($entity_key === 'ordinal'){
-					$_SESSION['message'] = "You selected" . $entity_value . "restaurant on the list. What information do you want?";
+					if($using_nlg){
+						$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/selectRestaurant?restaurant=" . $_SESSION['restaurant_list'][$entity_value-1]->name);
+					}
+					if(!$using_nlg || !$message_temp){
+						if($debug_nlg){ echo "WARNING: Using Built-in responses!!!";}
+						$message_temp = "You selected " . $_SESSION['restaurant_list'][$entity_value-1]->name . " on the list. What information do you want?";
+					}
+					$_SESSION['message'] = $message_temp;
 
 					if($debug){
 						echo "+++++++++++++++ display_restaurant +++++++++++++ <br>";
 						print_r($_SESSION['restaurant_list'][$entity_value-1]);
+						echo $_SESSION['restaurant_list'][$entity_value-1]->name;
 					}
 
 					display_restaurant($_SESSION['restaurant_list'][$entity_value-1]);
@@ -450,7 +576,6 @@
 			}
 		}
 		else if($intent === 'restaurantInfo'){
-
 			$info_flag = false;
 			foreach($entityArray as $entity_key => $entity_value){
 				if($debug){
@@ -460,14 +585,27 @@
 				}
 				if($entity_key == 'phoneRequest'){
 					$phone_number = $_SESSION['selected_restaurant']->display_phone;
-					$_SESSION['message'] = "You requested phone number. The phone number is: " . $phone_number;
+
+					if($using_nlg){
+						$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/restaurant_info?utterance=" . $user_utterance . "&entity_name=phoneRequest&entity_value=" . $phone_number);
+					}
+					if(!$using_nlg || !$message_temp){
+						$message_temp = "You requested phone number. The phone number is: " . $phone_number;
+					}
+					$_SESSION['message'] = $message_temp;
 					$newstate = 'getinfo';
 					$info_flag = true;
 					break;
 				}
 				else if($entity_key == 'ratingRequest'){
 					$rating = $_SESSION['selected_restaurant']->rating;
-					$_SESSION['message'] = "You requested rating. The rating is: " . $rating . " stars";
+					if($using_nlg){
+						$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/restaurant_info?utterance=" . $user_utterance . "&entity_name=ratingRequest&entity_value=" . $rating);
+					}
+					if(!$using_nlg || !$message_temp){
+						$message_temp  = "You requested rating. The rating is: " . $rating . " stars";
+					}
+					$_SESSION['message'] = $message_temp;
 					$newstate = 'getinfo';
 					$info_flag = true;
 					break;
@@ -482,20 +620,49 @@
 					$address = $_SESSION['selected_restaurant']->location->display_address[0] .
 							" " . $_SESSION['selected_restaurant']->location->display_address[1] .
 							" " . $_SESSION['selected_restaurant']->location->display_address[2];
-					$_SESSION['message'] = "You requested address. " . $address;
+
+					if($using_nlg){
+						$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/restaurant_info?utterance=" . $user_utterance . "&entity_name=addressRequest&entity_value=" . $address);
+					}
+					if(!$using_nlg || !$message_temp){
+						$message_temp = "You requested address. " . $address;
+					}
+					$_SESSION['message'] = $message_temp;
 					$newstate = 'getinfo';
 					$info_flag = true;
 					break;
 				}
 				else if($entity_key == 'reviewRequest'){
 					$review = $_SESSION['selected_restaurant']->snippet_text;
-					$_SESSION['message'] = "You requested review: " . $review;
+
+					if($using_nlg){
+						$message_temp  = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/restaurant_info?utterance=" . $user_utterance . "&entity_name=reviewRequest&entity_value=" . $review);
+					}
+					if(!$using_nlg || !$message_temp){
+						$message_temp  = "You requested review: " . $review;
+					}
+					$_SESSION['message'] = $message_temp;
 					$newstate = 'getinfo';
 					$info_flag = true;
 					break;
 				}
 				else if($entity_key == 'isOpenRequest'){
-					$_SESSION['message'] = "You asked whether it is open. ";
+					$isOpen = true;
+
+					if($isOpen){
+						$isOpenValue = "open";
+					}
+					else{
+						$isOpenValue = "closed";
+					}
+
+					if($using_nlg){
+						$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/restaurant_info?utterance=" . $user_utterance . "&entity_name=isOpenRequest&entity_value=" . $isOpenValue);
+					}
+					if(!$using_nlg || !$message_temp){
+						$message_temp = "You asked whether it is open. It is" . $isOpenValue;
+					}
+					$_SESSION['message'] = $message_temp;
 					$newstate = 'getinfo';
 					$info_flag = true;
 					break;
@@ -503,22 +670,64 @@
 
 			}
 			if(!$info_flag){
-				$_SESSION['message'] = "Cannot recognize you request. What do you want to know about this restaurant?";
-				$newstate = 'getinfo';
+
+				if($using_nlg){
+					$message_temp  = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/restaurant_info?utterance=" . $user_utterance . "&entity_name=infoError&entity_value=0");
+				}
+				if(!$using_nlg || !$message_temp){
+					$message_temp = "Cannot recognize you request. What do you want to know about this restaurant?";
+				}
+				$_SESSION['message'] = $message_temp;
 			}
 		}
 		else if($intent === 'return'){
 			//display_list($_SESSION['restaurant_list']);
 			$newstate = 'initial';
-			$_SESSION['message'] = "How can I help you?";
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/greeting");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ 
+					echo "WARNING: Using Built-in responses!!!";
+				}
+				$message_temp = "Hi, how can I help you?";
+			}
+			$_SESSION['message'] = $message_temp;
 			//$_SESSION['selected_restaurant']  = array();
 		}
 		else if($intent === 'returnStart'){
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/greeting");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ 
+					echo "WARNING: Using Built-in responses!!!";
+				}
+				$message_temp = "Hi, how can I help you?";
+			}
+			$_SESSION['message'] = $message_temp;
 			$newstate = 'initial';
 		}
 		else if($intent === 'finished'){
-			$_SESSION['message'] = "Good Bye!";
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/goodbye");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ echo "WARNING: Using Built-in responses!!!";}
+				$message_temp = "Good Bye!";
+			}
+			$_SESSION['message'] = $message_temp;
+			display_restaurant($_SESSION['restaurant_list'][$entity_value-1]);
 			$newstate = 'finish';
+		}
+		else if($intent === 'UNKNOWN'){
+			if($using_nlg){
+				$_SESSION['message'] = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/clarification");
+			}
+			else{
+				$_SESSION['message'] = "I don't understand your request. Can you repeat that?";
+			}
+			$newstate = 'select';
 		}
 		else{
 			$_SESSION['message'] = "Please select a restaurant from the list!";
@@ -527,7 +736,7 @@
 	}
 
 	/*
-	 * current state : gerInfo
+	 * current state : getinfo
 	 */
 
 	else if($state === 'getinfo'){
@@ -547,14 +756,27 @@
 				}
 				if($entity_key == 'phoneRequest'){
 					$phone_number = $_SESSION['selected_restaurant']->display_phone;
-					$_SESSION['message'] = "You requested phone number. The phone number is: " . $phone_number;
+
+					if($using_nlg){
+						$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/restaurant_info?utterance=" . $user_utterance . "&entity_name=phoneRequest&entity_value=" . $phone_number);
+					}
+					if(!$using_nlg || !$message_temp){
+						$message_temp = "You requested phone number. The phone number is: " . $phone_number;
+					}
+					$_SESSION['message'] = $message_temp;
 					$newstate = 'getinfo';
 					$info_flag = true;
 					break;
 				}
 				else if($entity_key == 'ratingRequest'){
 					$rating = $_SESSION['selected_restaurant']->rating;
-					$_SESSION['message'] = "You requested rating. The rating is: " . $rating . " stars";
+					if($using_nlg){
+						$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/restaurant_info?utterance=" . $user_utterance . "&entity_name=ratingRequest&entity_value=" . $rating);
+					}
+					if(!$using_nlg || !$message_temp){
+						$message_temp  = "You requested rating. The rating is: " . $rating . " stars";
+					}
+					$_SESSION['message'] = $message_temp;
 					$newstate = 'getinfo';
 					$info_flag = true;
 					break;
@@ -569,20 +791,49 @@
 					$address = $_SESSION['selected_restaurant']->location->display_address[0] .
 							" " . $_SESSION['selected_restaurant']->location->display_address[1] .
 							" " . $_SESSION['selected_restaurant']->location->display_address[2];
-					$_SESSION['message'] = "You requested address. " . $address;
+
+					if($using_nlg){
+						$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/restaurant_info?utterance=" . $user_utterance . "&entity_name=addressRequest&entity_value=" . $address);
+					}
+					if(!$using_nlg || !$message_temp){
+						$message_temp = "You requested address. " . $address;
+					}
+					$_SESSION['message'] = $message_temp;
 					$newstate = 'getinfo';
 					$info_flag = true;
 					break;
 				}
 				else if($entity_key == 'reviewRequest'){
 					$review = $_SESSION['selected_restaurant']->snippet_text;
-					$_SESSION['message'] = "You requested review: " . $review;
+
+					if($using_nlg){
+						$message_temp  = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/restaurant_info?utterance=" . $user_utterance . "&entity_name=reviewRequest&entity_value=" . $review);
+					}
+					if(!$using_nlg || !$message_temp){
+						$message_temp  = "You requested review: " . $review;
+					}
+					$_SESSION['message'] = $message_temp;
 					$newstate = 'getinfo';
 					$info_flag = true;
 					break;
 				}
 				else if($entity_key == 'isOpenRequest'){
-					$_SESSION['message'] = "You asked whether it is open. ";
+					$isOpen = true;
+
+					if($isOpen){
+						$isOpenValue = "open";
+					}
+					else{
+						$isOpenValue = "closed";
+					}
+
+					if($using_nlg){
+						$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/restaurant_info?utterance=" . $user_utterance . "&entity_name=isOpenRequest&entity_value=" . $isOpenValue);
+					}
+					if(!$using_nlg || !$message_temp){
+						$message_temp = "You asked whether it is open. It is" . $isOpenValue;
+					}
+					$_SESSION['message'] = $message_temp;
 					$newstate = 'getinfo';
 					$info_flag = true;
 					break;
@@ -590,8 +841,14 @@
 
 			}
 			if(!$info_flag){
-				$_SESSION['message'] = "Cannot recognize you request. What do you want to know about this restaurant?";
-				$newstate = 'getinfo';
+
+				if($using_nlg){
+					$message_temp  = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/restaurant_info?utterance=" . $user_utterance . "&entity_name=infoError&entity_value=0");
+				}
+				if(!$using_nlg || !$message_temp){
+					$message_temp = "Cannot recognize you request. What do you want to know about this restaurant?";
+				}
+				$_SESSION['message'] = $message_temp;
 			}
 		}
 		else if($intent === 'return'){
@@ -599,14 +856,41 @@
 			display_restaurant($_SESSION['selected_restaurant']);
 			$_SESSION['message'] = "What do you want to know about this restaurant?";
 		}
-		else if($intent === 'returnStart'){
+		else if($intent == 'returnStart'){
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/greeting");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ 
+					echo "WARNING: Using Built-in responses!!!";
+				}
+				$message_temp = "Hi, how can I help you?";
+			}
+			$_SESSION['message'] = $message_temp;
 			$newstate = 'initial';
 		}
+		else if($intent === 'UNKNOWN'){
+			if($using_nlg){
+				$_SESSION['message'] = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/restaurant_info?utterance=" . $user_utterance . "&entity_name=infoError&entity_value=0");
+			}
+			else{
+				$_SESSION['message'] = "Cannot recognize you request. What do you want to know about this restaurant?";
+			}
+			$newstate = 'getinfo';
+		}
 		else if($intent === 'finished'){
-			$_SESSION['message'] = "Good Bye!";
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/goodbye");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ echo "WARNING: Using Built-in responses!!!";}
+				$message_temp = "Good Bye!";
+			}
+			$_SESSION['message'] = $message_temp;
 			$newstate = 'finish';
 		}
 		else{
+			display_restaurant($_SESSION['selected_restaurant']);
 			$_SESSION['message'] = "What do you want to know about this restaurant?";
 			$newstate = 'getinfo';
 		}
@@ -619,17 +903,34 @@
 			echo "current intent: " . $intent . "<br>";
 		}
 		if($intent == 'return'){
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/greeting");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ 
+					echo "WARNING: Using Built-in responses!!!";
+				}
+				$message_temp = "Hi, how can I help you?";
+			}
+			$_SESSION['message'] = $message_temp;
 			$newstate = 'initial';
 		}
 		else if($intent == 'finished'){
-			$_SESSION['message'] = "Good Bye!";
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/goodbye");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ echo "WARNING: Using Built-in responses!!!";}
+				$message_temp = "Good Bye!";
+			}
+			$_SESSION['message'] = $message_temp;
 			$newstate = 'finish';
 		}
 		else{
 			$_SESSION['message'] = "What do you want to know about this restaurant?";
 		}
 	}
-	else if($state == 'finished'){
+	else if($state == 'finish'){
 
 		reset_param();
 
@@ -639,10 +940,50 @@
 			echo "current intent: " . $intent . "<br>";
 		}
 		if($intent ==='return'){
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/greeting");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ 
+					echo "WARNING: Using Built-in responses!!!";
+				}
+				$message_temp = "Hi, how can I help you?";
+			}
+			$_SESSION['message'] = $message_temp;
 			$newstate = 'initial';
 		}
+		else if($intent ==='returnStart'){
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/greeting");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ 
+					echo "WARNING: Using Built-in responses!!!";
+				}
+				$message_temp = "Hi, how can I help you?";
+			}
+			$_SESSION['message'] = $message_temp;
+			$newstate = 'initial';
+		}
+		else if($intent === 'UNKNOWN'){
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/clarification");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ echo "WARNING: Using Built-in responses!!!";}
+				$message_temp = "I don't understand your request. Can you repeat that?";
+			}
+			$_SESSION['message'] = $message_temp;
+		}
 		else {
-			$_SESSION['message'] = "Good Bye!";
+			if($using_nlg){
+				$message_temp = get_nlg_response("http://ec2-52-7-6-223.compute-1.amazonaws.com/goodbye");
+			}
+			if(!$using_nlg || !$message_temp){
+				if($debug_nlg){ echo "WARNING: Using Built-in responses!!!";}
+				$message_temp = "Good Bye!";
+			}
+			$_SESSION['message'] = $message_temp;
 			$newstate = 'finish';
 		}
 
@@ -655,16 +996,43 @@
 	    echo "######3: " . $_SESSION['searchArr']["deals"] . "<br>";
 	    echo "######4: " . $_SESSION['searchArr']["sorting"]  . "<br>";
 	}
-	echo $_SESSION['message'];
+	echo "System response: " . $_SESSION['message'];
 	$_SESSION['state'] = $newstate;
-	echo "<br>";
-	echo "new state: " . $newstate . "<br>";
+	if($debug){
+		echo "<br>";
+		echo "new state: " . $newstate . "<br>";
+	}
 	if($debug){
 		echo $_SESSION['api_response'];
 		echo "<br>";
 	}
+
+	if($phone_number){
+		echo "<table style=\"width: 400px;\" class=\"center\"><tr><td><img src=\"http://www.clker.com/cliparts/0/f/c/2/1195445181899094722molumen_phone_icon.svg.hi.png\" height=80 width =80/></td>";
+		echo "<td><a href=\"tel:" . $phone_not_display . "\">" . $phone_number . "</a></td></tr></table>";
+	}
+	if($address){
+
+	}
+	echo "<p style=\"color:black; font-family:monospace;\">";
+	if($newstate == "initial" || $newstate=="filtering"){
+		echo "Try \"Find me a Starbucks\" or \"Chinese restaurants in San Francisco\"";
+	}
+	else if($newstate == "select"){
+		echo "Try \"Select the first one\" or \"I want to pick the third one\"";
+	}
+	else if($newstate == "getinfo"){
+		echo "Try \"I want to know the address/phone number/reviews/if it's open/ratings\"";
+	}
+	echo "To go back, say \"go back\" or \"start over\" to start a new search.  Or you can say \"I'm done\" when you are finished.</p><br>";
+
+	$_SESSION['message'] = str_replace("'","\\'", $_SESSION['message']);
+	$_SESSION['message'] = str_replace("\"","\\\"", $_SESSION['message']);
+	$_SESSION['message']= str_replace("\n", "", $_SESSION['message']);
+	$_SESSION['message'] = str_replace("\r", "", $_SESSION['message']);
+	$_SESSION['message'] = str_replace("\t", "", $_SESSION['message']);
 	//echo  "<script> speechSynthesis.speak(SpeechSynthesisUtterance('Hello World'));</script>";
-	echo  "<button class=\"btn btn-lg btn-primary btn-block\" id=\"speak\" onclick=\"speechSynthesis.speak(new SpeechSynthesisUtterance('" . $_SESSION['message'] . "'));\" >Speak</button>";
+	echo  "<button id=\"speak\" onclick=\"speechSynthesis.speak(new SpeechSynthesisUtterance('" . $_SESSION['message'] . "'));\" ><img src=\"http://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Speaker_Icon.svg/1024px-Speaker_Icon.svg.png\" height=40 width=40></button>";
 	//echo "<script>setTimeout(\"location.href = 'DMtest.php?words=" . $_SESSION['message'] . "';\",1500);</script>";
 
 
