@@ -1,0 +1,5 @@
+You selected #. What information would you like?
+Would you like some information about #?
+Would you like specific information about #?
+What would you like to know about #?
+What information would you like to know about #?

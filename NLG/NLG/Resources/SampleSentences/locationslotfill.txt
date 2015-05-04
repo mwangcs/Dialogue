@@ -5,7 +5,7 @@ I want to eat at a place.	What place would you like to eat at?
 I want to eat.	Where do you want to eat?
 Best places to eat.	Where would you like to eat?
 Find me a restaurant.	At which location should I look for these restaurants?
-Find me a restaurant.	Is there a specific location, you would prefer?
+Find me a restaurant.	Which location would you prefer?
 Find me a restaurant.	What location do you have in mind?
 Hungry for some food.	Where would you like to eat today?
-List of restaurants.	Do you have any preferences for location?
+List of restaurants.	Which location would you prefer?

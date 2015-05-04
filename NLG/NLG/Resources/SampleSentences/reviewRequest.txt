@@ -1,0 +1,7 @@
+What is the review for this restaurant?	You asked for reviews. One of the reviews is, #.
+Give me a review for this restaurant?	You asked for reviews. One of the reviews is, #.
+What is the review?	You asked for reviews. One of the reviews is, #.
+Can you tell me the review?	You requested for reviews. One of them is, #.
+Can you tell me a review for this restaurant?	You requested for reviews. One of them is, #.
+What did people say about this restaurant?	Someone said the following about this restaurant, #.
+What did people think about this restaurant?	Someone thought the following about this restaurant, #.

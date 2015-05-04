@@ -4,7 +4,7 @@ __date__ = "$April, 2015"
 
 # Response to restaurant query: ( By Professor Stoyanchev)
 # Here is a list of  FOOD_TYPE  restaurants..
-# Here is a list of  ADJECTIVE FOOD_TYPE  restaurants.
+#  Here is a list of  ADJECTIVE FOOD_TYPE  restaurants.
 #  Some of the FOOD_TYPE  restaurants NEARNESS are
 # etc.
 
@@ -31,10 +31,34 @@ S : Okay, here is a list of restaurants near you. -p2
 
 """
 
-simple_affirmations = ["Okay, ", "Let me find out! ", "Hmm, "]
+# Steps for user utterance analysis:
+# 1)* POS Tagging - If JJ in user_utterance, extract reaffirmation.
+# 2)* On the basis of slot to be filled, randomly extract a sentence from <required> txt file
+# 3)& If response to be returned to the users (after yelp api response obtained); Perform POS tagging + string, semantic similarity
+
+simple_affirmations = ["Okay, ", "Why Not! ", "Hmm, "]
 reaffirmations = ["Great! ", "Awesome! ", "That sounds great! ", "Okay, ", "Sure, ", "Why not! "]
 nearness = ["near you ", "around you ", "nearby ", "close by ", "in your area "]
 
+def if_adj(user_utterance, cuisine):
+    """ i/p Utterance; If any pos = 'JJ', then return true, else false |
+    User has the knack of using adjectives
+    (other than the cuisine name) for expressiveness """
+
+    flag = False
+
+    # Adjust intent value #
+    cuisine = "Italian restaurants"
+
+    postag = nltk.pos_tag(nltk.word_tokenize(user_utterance))
+    print postag
+    for tag_pair in postag:
+        if (('JJ' in tag_pair) or ('JJS' in tag_pair) and (tag_pair[0] not in cuisine)):
+            # Second condition prevents case : "Italian" within "Italian restaurants" to be tagged as a 'JJ'#
+            print tag_pair
+            flag = True
+            break
+    return flag
 
 def if_user_loc(user_location):
     filename = open("/Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/nearness.txt")
@@ -76,18 +100,15 @@ def get_similar_Lev(user_utterance, temp_flines, th):
         print (each_line, cos_sim)
         if cos_sim >= th:
             sim_lines.append(sentence)
-    # print sim_lines
+    print sim_lines
     return sim_lines
 
 
 # @mode : (0, Baseline) | (1, difflib <R/O>) | (2, Levenshtein <Edit Distance>)
-# http://0.0.0.0/analyse_utterance?utterance=eat&type=location
+
 def analyse_utterance(user_utterance, intent, entity, mode):
     response = ""
-    if entity == "location" or entity == "search_query":
-        response = reaffirmations[random.randint(0, len(reaffirmations) - 1)]
-    else:
-        response = simple_affirmations[random.randint(0, len(simple_affirmations) - 1)]
+    response = reaffirmations[random.randint(0, len(reaffirmations) - 1)]
     # 1. Location
     if entity == "location":
         filename = "/Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/locationslotfill.txt"
@@ -97,14 +118,6 @@ def analyse_utterance(user_utterance, intent, entity, mode):
     elif entity == "search_query":
         filename = "/Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/cuisineslotfill.txt"
         th = 0.60
-
-    #### Info ####
-    # 3. addressRequest 4. isOpenRequest
-    # 5. phoneRequest # 6. ratingRequest    # 7. reviewRequest
-    elif ((entity == "addressRequest") or (entity == "isOpenRequest") or (entity == "phoneRequest") or (
-        entity == "ratingRequest") or (entity == "reviewRequest")):
-        filename = "/Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/" + str(entity) + ".txt"
-        th = 0.70
 
     rfile = open(filename)
     rlines = rfile.readlines()
@@ -143,34 +156,62 @@ def analyse_utterance(user_utterance, intent, entity, mode):
 
 
 # from TemplateAnalyser import *
-# val = analyse_utterance("Find me a chinese restaurant.", "i", "location", 1)
-# print val
+val = analyse_utterance("Find me a chinese restaurant.", "i", "location", 1)
+print val
+
+
+
+
+
+# def main(user_utterance, intent, entity):
+#     # a = analyse_utterance(user_utterance, intent, entity)
+
+# def usage():
+#     sys.stderr.write("""
+#     Usage: Analyse user utterance | Return suitable template response.\n""")
+
+# if __name__ == "__main__":
+#   # if len(sys.argv) != 4:
+#   #   usage()
+#   #   sys.exit(1)
+#   main(sys.argv[1], sys.argv[2], sys.argv[3])
 
 # # Input will be - user utterance, intent, entity #
 # val = if_user_loc("near me")
 # print val
 
-def get_restaurant_info(utterance, entity_name, entity_value):
+def put_dash(phone_no):
+    # First check if dash present, if not, insert.
+    dashed_no, incr, index = "", len(phone_no)/3, len(phone_no)/3
+    if len(phone_no)>2:
+        while index<len(phone_no):
+            dashed_no += phone_no[:index]
+            index += incr
+    return dashed_no[:-1]
+
+
+def get_restaurant_info(entity_name, entity_value, fname):
     """This function is called for restaurant info request
     - phone no, rating, address, review, is_open"""
     if entity_name == "infoError":
         error_fname = open("/Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/infoError.txt")
         rlines = error_fname.readlines()
-        sel_response = rlines[random.randint(0, len(rlines) - 1)]
-
+        response_str = rlines[random.randint(0, len(rlines) - 1)]
     else:
-        sel_response = analyse_utterance(utterance, "i",  str(entity_name), 1)
-        # sel_response = sim_lines[random.randint(0, len(sim_lines) - 1)]
-        if sel_response.find('#') != -1:
-            sel_response = sel_response.replace("#", entity_value)
-    return sel_response
+        file = open(fname)
+        rlines = file.readlines()
+        sel_response = rlines[random.randint(0, len(rlines) - 1)]
+        #
+        # if entity_name == 'phoneRequest':
+        #     phone_no = entity_value
+        #     if phone_no.find('-') == -1:
+        #         entity_value = put_dash(phone_no)
+
+        response_str = sel_response.replace("#", entity_value)
+    return response_str
 
 #
-# rstr = get_restaurant_info("Can you tell me the address","addressRequest", "66W, 109th Street")
-# rstr = get_restaurant_info("Is it open","isOpenRequest", "closed")
-# rstr = get_restaurant_info("Can you tell me the phone number","phoneRequest", "66-109")
-# rstr = get_restaurant_info("Can you tell me the rating","ratingRequest", "5")
-# rstr = get_restaurant_info("What is the review","reviewRequest", "I had a great time!")
+# rstr = get_restaurant_info("someval", "", "fn")
 # print rstr
 
 def get_greetings():
@@ -178,29 +219,24 @@ def get_greetings():
     rlines = rfile.readlines()
     return rlines[random.randint(0, len(rlines) - 1)]
 
-
 def get_bye():
     rfile = open("/Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/goodbye.txt")
     rlines = rfile.readlines()
     return rlines[random.randint(0, len(rlines) - 1)]
-
 
 def get_clarification():
     rfile = open("/Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/clarification.txt")
     rlines = rfile.readlines()
     return rlines[random.randint(0, len(rlines) - 1)]
 
-
 def display_restaurants():
     return "abc"
-
 
 def get_info_type(restaurant_name):
     rfile = open("/Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/selectRestaurant.txt")
     rlines = rfile.readlines()
     sel_response = rlines[random.randint(0, len(rlines) - 1)]
-    if sel_response.find('#') != -1:
-        response_str = sel_response.replace("#", restaurant_name)
+    response_str = sel_response.replace("#", restaurant_name)
     return response_str
 
 
@@ -208,8 +244,8 @@ def restaurant_display(utterance):
     rfile = open("/Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/displayRestaurants.txt")
     rlines = rfile.readlines()
     sel_response = rlines[random.randint(0, len(rlines) - 1)]
-    response_str = "Analyse this text " + sel_response.rstrip('\n') + " | " + str(utterance)
+    response_str = "Analyse this text " + sel_response.rstrip('\n') + " | "+str(utterance)
     return response_str
 
-    # val = restaurant_display("hey there")
-    # print val
+# val = restaurant_display("hey there")
+# print val
