@@ -1,0 +1,4 @@
+Here is a list of restaurants. Pick a restaurant from the list.
+Please pick a restaurant from the list.
+Which restaurant would you like to pick?
+Here are the restaurants.

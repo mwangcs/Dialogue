@@ -1,0 +1,6 @@
+Is this restaurant open.	You asked if it is open. It is currently #.
+Is it open.	It is currently #.
+Is it open.	The restaurant is currently #.
+Is the restaurant open.	The restaurant is currently #.
+Are they open?	They are currently #.
+Is the restaurant open?	You asked if it is open. They are currently #.

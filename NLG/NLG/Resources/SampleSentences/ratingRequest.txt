@@ -1,3 +1,6 @@
-You asked for rating. The rating is #.
-You requested rating. The rating is #.
-It is rated a #.
+What is the rating for this restaurant?	You asked for rating. The rating is # stars.
+What is the rating?	You asked for rating. The rating is # stars.
+What is it's rating?	You asked for rating. It's rating is # stars.
+Can you tell me the rating for this restaurant?	You requested rating. The rating is # stars.
+Can you tell me the rating?	You requested rating. The rating is # stars.
+How is it rated?	It is rated # stars.

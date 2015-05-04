@@ -1,0 +1,7 @@
+What is the address?	You asked for address. The address is , #.
+Can you tell me the address.	You requested address. The address is , #.
+Can you tell me the address please.	You requested address. The address is , #.
+Where is it located?	It is located at , #.
+What is it's location?	It is located at , #.
+Can you tell me the location?	It is located at , #.
+The address is , #.

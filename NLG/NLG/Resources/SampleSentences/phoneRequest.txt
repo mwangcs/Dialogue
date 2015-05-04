@@ -1,3 +1,8 @@
-You asked for phone number. The number is #.
-The contact information is #.
-You requested phone number. The phone number is #.
+What is the phone number for this restaurant?	You asked for phone number. The number is #.
+What is the phone number?	You asked for phone number. The number is #.
+What is the contact number for this restaurant?	The contact number is #.
+What is the contact number?	The contact number is #.
+Can you tell me the phone number for this restaurant?	You requested phone number. The phone number is #.
+How do I contact the restaurant?	To contact the restaurant, you can call #.
+Where do I call the restaurant?	You can call the restaurant on #.
+What is the contact information for this restaurant?	The contact information is #.
