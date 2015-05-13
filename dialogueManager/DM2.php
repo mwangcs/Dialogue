@@ -246,7 +246,7 @@
 	function get_nlg_response($url){
 		$url = str_replace(" ","%20", $url);
 		$ch = curl_init($url);
-		//curl_setopt($ch, CURLOPT_URL, "http://0.0.0.0:5000/analyse_utterance/Version0?utterance=eat&type=location");
+		//curl_setopt($ch, CURLOPT_URL, "http://0.0.0.0:5000/analyse_utterance/Version1?utterance=eat&type=location");
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
 		curl_setopt($ch, CURLOPT_TIMEOUT, 200);
@@ -304,7 +304,7 @@
 			$allslotsfilled = true;
 			foreach($array as $key1 => $value1){
 				if($value1 === ""){
-					$system_message = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/analyse_utterance/Version0?utterance=" . $user_utterance . "&type=" . $key1, "Do you have any preferences for " . $key1 . "?");
+					$system_message = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/analyse_utterance/Version1?utterance=" . $user_utterance . "&type=" . $key1, "Do you have any preferences for " . $key1 . "?");
 					$allslotsfilled = false;
 				}
 			}
@@ -395,7 +395,7 @@
 			$allslotsfilled = true;
 			foreach($array as $key1 => $value1){
 				if($value1 === ""){
-					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/analyse_utterance/Version0?utterance=" . $user_utterance . "&type=" . $key1,
+					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/analyse_utterance/Version1?utterance=" . $user_utterance . "&type=" . $key1,
 					"Do you have any preferences for " . $key1 . "?");
 					$allslotsfilled = false;
 				}
@@ -508,7 +508,7 @@
 				if($entity_key == 'phoneRequest'){
 					$phone_number = $_SESSION['selected_restaurant']->display_phone;
 
-					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version0?utterance=" . $user_utterance . "&entity_name=phoneRequest&entity_value=" . $phone_number,
+					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version2?utterance=" . $user_utterance . "&entity_name=phoneRequest&entity_value=" . $phone_number,
 						"You requested phone number. The phone number is: " . $phone_number);
 					$_SESSION['message'] = $message_temp;
 					$newstate = 'getinfo';
@@ -518,7 +518,7 @@
 				else if($entity_key == 'ratingRequest'){
 					$rating = $_SESSION['selected_restaurant']->rating;
 
-					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version0?utterance=" . $user_utterance . "&entity_name=ratingRequest&entity_value=" . $rating,
+					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version2?utterance=" . $user_utterance . "&entity_name=ratingRequest&entity_value=" . $rating,
 						"You requested rating. The rating is: " . $rating . " stars");
 
 					$_SESSION['message'] = $message_temp;
@@ -537,7 +537,7 @@
 							" " . $_SESSION['selected_restaurant']->location->display_address[1] .
 							" " . $_SESSION['selected_restaurant']->location->display_address[2];
 
-					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version0?utterance=" . $user_utterance . "&entity_name=addressRequest&entity_value=" . $address,
+					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version2?utterance=" . $user_utterance . "&entity_name=addressRequest&entity_value=" . $address,
 						"You requested address. The address is " . $address);
 					$_SESSION['message'] = $message_temp;
 					$newstate = 'getinfo';
@@ -547,7 +547,7 @@
 				else if($entity_key == 'reviewRequest'){
 					$review = $_SESSION['selected_restaurant']->snippet_text;
 
-					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version0?utterance=" . $user_utterance . "&entity_name=reviewRequest&entity_value=" . $review,
+					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version2?utterance=" . $user_utterance . "&entity_name=reviewRequest&entity_value=" . $review,
 						"You requested review: " . $review);
 
 					$_SESSION['message'] = $message_temp;
@@ -572,7 +572,7 @@
 						$isOpenValue = "closed";
 					}
 
-					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version0?utterance=" . $user_utterance . "&entity_name=isOpenRequest&entity_value=" . $isOpenValue,
+					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version2?utterance=" . $user_utterance . "&entity_name=isOpenRequest&entity_value=" . $isOpenValue,
 						"You asked whether it is open. It is" . $isOpenValue);
 					$_SESSION['message'] = $message_temp;
 					$newstate = 'getinfo';
@@ -582,7 +582,7 @@
 
 			}
 			if(!$info_flag){
-				$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version0?utterance=" . $user_utterance . "&entity_name=infoError&entity_value=0",
+				$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version2?utterance=" . $user_utterance . "&entity_name=infoError&entity_value=0",
 						"Cannot recognize you request. What do you want to know about this restaurant?");
 				$_SESSION['message'] = $message_temp;
 			}
@@ -642,7 +642,7 @@
 				if($entity_key == 'phoneRequest'){
 					$phone_number = $_SESSION['selected_restaurant']->display_phone;
 
-					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version0?utterance=" . $user_utterance . "&entity_name=phoneRequest&entity_value=" . $phone_number,
+					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version2?utterance=" . $user_utterance . "&entity_name=phoneRequest&entity_value=" . $phone_number,
 						"You requested phone number. The phone number is: " . $phone_number);
 
 					$_SESSION['message'] = $message_temp;
@@ -652,7 +652,7 @@
 				}
 				else if($entity_key == 'ratingRequest'){
 					$rating = $_SESSION['selected_restaurant']->rating;
-					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version0?utterance=" . $user_utterance . "&entity_name=ratingRequest&entity_value=" . $rating,
+					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version2?utterance=" . $user_utterance . "&entity_name=ratingRequest&entity_value=" . $rating,
 						"You requested rating. The rating is: " . $rating . " stars");
 					$_SESSION['message'] = $message_temp;
 					$newstate = 'getinfo';
@@ -670,7 +670,7 @@
 							" " . $_SESSION['selected_restaurant']->location->display_address[1] .
 							" " . $_SESSION['selected_restaurant']->location->display_address[2];
 
-					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version0?utterance=" . $user_utterance . "&entity_name=addressRequest&entity_value=" . $address,
+					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version2?utterance=" . $user_utterance . "&entity_name=addressRequest&entity_value=" . $address,
 						"You requested address. The address is " . $address);
 
 					$_SESSION['message'] = $message_temp;
@@ -681,7 +681,7 @@
 				else if($entity_key == 'reviewRequest'){
 					$review = $_SESSION['selected_restaurant']->snippet_text;
 
-					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version0?utterance=" . $user_utterance . "&entity_name=reviewRequest&entity_value=" . $review,
+					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version2?utterance=" . $user_utterance . "&entity_name=reviewRequest&entity_value=" . $review,
 						"You requested review: " . $review);
 					$_SESSION['message'] = $message_temp;
 					$newstate = 'getinfo';
@@ -698,7 +698,7 @@
 						$isOpenValue = "closed";
 					}
 
-					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version0?utterance=" . $user_utterance . "&entity_name=isOpenRequest&entity_value=" . $isOpenValue,
+					$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version2?utterance=" . $user_utterance . "&entity_name=isOpenRequest&entity_value=" . $isOpenValue,
 						"You asked whether it is open. It is" . $isOpenValue);
 
 					$_SESSION['message'] = $message_temp;
@@ -710,7 +710,7 @@
 			}
 			if(!$info_flag){
 
-				$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version0?utterance=" . $user_utterance . "&entity_name=infoError&entity_value=0",
+				$message_temp = get_system_response("http://ec2-52-4-113-236.compute-1.amazonaws.com/restaurant_info/Version2?utterance=" . $user_utterance . "&entity_name=infoError&entity_value=0",
 						"Cannot recognize you request. What do you want to know about this restaurant?");
 				$_SESSION['message'] = $message_temp;
 			}
