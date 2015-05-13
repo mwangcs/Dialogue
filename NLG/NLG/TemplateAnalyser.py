@@ -18,7 +18,7 @@ __date__ = "$April, 2015"
 Levenshtein implements edit distance |
 difflib is an advanced version of R/O | NLTK is being used for POS tagging"""
 
-import random
+import random, urllib2
 import Levenshtein, difflib, nltk
 
 """
@@ -31,20 +31,9 @@ S : Okay, here is a list of restaurants near you. -p2
 
 """
 
-simple_affirmations = ["Okay, ", "Let me find out! ", "Hmm, "]
+simple_affirmations = ["Okay, ", "Let me find out! ", "Let's see, ", "I believe, "]
 reaffirmations = ["Great! ", "Awesome! ", "That sounds great! ", "Okay, ", "Sure, ", "Why not! "]
 nearness = ["near you ", "around you ", "nearby ", "close by ", "in your area "]
-
-
-def if_user_loc(user_location):
-    filename = open("/Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/nearness.txt")
-    rlines = filename.readlines()
-    sim_lines = get_similar_RO(user_location, rlines, 0.95)
-    if len(sim_lines) > 0:
-        print sim_lines
-        return True
-    else:
-        return False
 
 
 def get_similar_RO(user_utterance, temp_flines, th):
@@ -60,7 +49,7 @@ def get_similar_RO(user_utterance, temp_flines, th):
         print (each_line, cos_sim)
         if cos_sim >= th:
             sim_lines.append(sentence)
-    print sim_lines
+    # print sim_lines
     return sim_lines
 
 
@@ -79,7 +68,7 @@ def get_similar_Lev(user_utterance, temp_flines, th):
     # print sim_lines
     return sim_lines
 
-
+# 52.7.6.223 | http://52.7.6.223/analyse_utterance?utterance=eat&type=location
 # @mode : (0, Baseline) | (1, difflib <R/O>) | (2, Levenshtein <Edit Distance>)
 # http://0.0.0.0/analyse_utterance?utterance=eat&type=location
 def analyse_utterance(user_utterance, intent, entity, mode):
@@ -90,12 +79,12 @@ def analyse_utterance(user_utterance, intent, entity, mode):
         response = simple_affirmations[random.randint(0, len(simple_affirmations) - 1)]
     # 1. Location
     if entity == "location":
-        filename = "/Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/locationslotfill.txt"
+        filename = "http://mandiw.com/sds/nlgtext/locationslotfill.txt"
         th = 0.7
 
     # 2. Cuisine
     elif entity == "search_query":
-        filename = "/Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/cuisineslotfill.txt"
+        filename = "http://mandiw.com/sds/nlgtext/cuisineslotfill.txt"
         th = 0.60
 
     #### Info ####
@@ -103,10 +92,11 @@ def analyse_utterance(user_utterance, intent, entity, mode):
     # 5. phoneRequest # 6. ratingRequest    # 7. reviewRequest
     elif ((entity == "addressRequest") or (entity == "isOpenRequest") or (entity == "phoneRequest") or (
         entity == "ratingRequest") or (entity == "reviewRequest")):
-        filename = "/Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/" + str(entity) + ".txt"
+        filename = "http://mandiw.com/sds/nlgtext/" + str(entity) + ".txt"
         th = 0.70
 
-    rfile = open(filename)
+    rfile = urllib2.urlopen(filename)
+    # rfile = open(filename)
     rlines = rfile.readlines()
 
     # Actual Response string #
@@ -139,7 +129,7 @@ def analyse_utterance(user_utterance, intent, entity, mode):
         rand_line = rlines[random.randint(0, len(rlines) - 1)]
         sentence = rand_line.split('\t')
         response += sentence[1]
-    return response
+    return response.rstrip('\n')
 
 
 # from TemplateAnalyser import *
@@ -154,7 +144,9 @@ def get_restaurant_info(utterance, entity_name, entity_value):
     """This function is called for restaurant info request
     - phone no, rating, address, review, is_open"""
     if entity_name == "infoError":
-        error_fname = open("/Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/infoError.txt")
+        filename = "http://mandiw.com/sds/nlgtext/infoError.txt"
+        # error_fname = open("http://mandiw.com/sds/nlgtext/infoError.txt")
+        error_fname = urllib2.urlopen(filename)
         rlines = error_fname.readlines()
         sel_response = rlines[random.randint(0, len(rlines) - 1)]
 
@@ -163,7 +155,7 @@ def get_restaurant_info(utterance, entity_name, entity_value):
         # sel_response = sim_lines[random.randint(0, len(sim_lines) - 1)]
         if sel_response.find('#') != -1:
             sel_response = sel_response.replace("#", entity_value)
-    return sel_response
+    return sel_response.rstrip('\n')
 
 #
 # rstr = get_restaurant_info("Can you tell me the address","addressRequest", "66W, 109th Street")
@@ -174,42 +166,53 @@ def get_restaurant_info(utterance, entity_name, entity_value):
 # print rstr
 
 def get_greetings():
-    rfile = open("/Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/greetings.txt")
+    # rfile = open("http://mandiw.com/sds/nlgtext/greetings.txt")
+    filename = "http://mandiw.com/sds/nlgtext/greetings.txt"
+    rfile = urllib2.urlopen(filename)
     rlines = rfile.readlines()
-    return rlines[random.randint(0, len(rlines) - 1)]
+    sel_response = rlines[random.randint(0, len(rlines) - 1)]
+    return sel_response.rstrip('\n')
 
 
 def get_bye():
-    rfile = open("/Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/goodbye.txt")
+    # rfile = open("http://mandiw.com/sds/nlgtext/goodbye.txt")
+    filename = "http://mandiw.com/sds/nlgtext/goodbye.txt"
+    rfile = urllib2.urlopen(filename)
     rlines = rfile.readlines()
-    return rlines[random.randint(0, len(rlines) - 1)]
+    sel_response = rlines[random.randint(0, len(rlines) - 1)]
+    return sel_response.rstrip('\n')
+    # return rlines[random.randint(0, len(rlines) - 1)]
 
 
 def get_clarification():
-    rfile = open("/Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/clarification.txt")
+    # rfile = open("http://mandiw.com/sds/nlgtext/clarification.txt")
+    filename = "http://mandiw.com/sds/nlgtext/clarification.txt"
+    rfile = urllib2.urlopen(filename)
     rlines = rfile.readlines()
-    return rlines[random.randint(0, len(rlines) - 1)]
+    sel_response = rlines[random.randint(0, len(rlines) - 1)]
+    return sel_response.rstrip('\n')
 
-
-def display_restaurants():
-    return "abc"
 
 
 def get_info_type(restaurant_name):
-    rfile = open("/Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/selectRestaurant.txt")
+    # rfile = open("http://mandiw.com/sds/nlgtext/selectRestaurant.txt")
+    filename = "http://mandiw.com/sds/nlgtext/selectRestaurant.txt"
+    rfile = urllib2.urlopen(filename)
     rlines = rfile.readlines()
     sel_response = rlines[random.randint(0, len(rlines) - 1)]
     if sel_response.find('#') != -1:
-        response_str = sel_response.replace("#", restaurant_name)
-    return response_str
+        sel_response = sel_response.replace("#", restaurant_name)
+    return sel_response.rstrip('\n')
 
 
 def restaurant_display(utterance):
-    rfile = open("/Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/displayRestaurants.txt")
+    # rfile = open("http://mandiw.com/sds/nlgtext/displayRestaurants.txt")
+    filename = "http://mandiw.com/sds/nlgtext/displayRestaurants.txt"
+    rfile = urllib2.urlopen(filename)
     rlines = rfile.readlines()
     sel_response = rlines[random.randint(0, len(rlines) - 1)]
-    response_str = "Analyse this text " + sel_response.rstrip('\n') + " | " + str(utterance)
-    return response_str
+    return sel_response.rstrip('\n')
 
-    # val = restaurant_display("hey there")
-    # print val
+# http://mandiw.com/sds/nlgtext/
+
+# /Users/ananyapoddar/PycharmProjects/NLG/Resources/SampleSentences/
