@@ -88,9 +88,9 @@
 	// These credentials can be obtained from the 'Manage API Access' page in the
 	// developers documentation (http://www.yelp.com/developers)
 	$CONSUMER_KEY = 'e9NrxKYFM-wVFsBx3uJi2g';
-	$CONSUMER_SECRET = 'EDMTYousZAWnCZxSkTx0V1GvsgQ';
+	$CONSUMER_SECRET = 'HIDDEN';
 	$TOKEN = 'mBkE08GxFy0UHFGrKb87CmVTe2ylj7Ot';
-	$TOKEN_SECRET = 'YZ7zbtveK0b1VbCnfGhYfrmbUJs';
+	$TOKEN_SECRET = 'HIDDEN';
 
 	$API_HOST = 'api.yelp.com';
 	$DEFAULT_TERM = 'restaurant';
