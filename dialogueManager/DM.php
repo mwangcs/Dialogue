@@ -3,11 +3,17 @@
 	error_reporting(-1);
 	ini_set('display_errors', 'On');
 	set_time_limit(0);
+
+	//If this is set to true, debug information would be printed to screen
 	$debug = false;
+
+	//If this is set to true, a warning would be displayed if the system is using built-in responses
 	$debug_nlg = false;
 
+	//If this is set to true, the response is from nlg componenent. Otherwise, built-in responses are used
 	$using_nlg = true;
 
+	//initialize global information
 	if(!$_SESSION['state']){
 		$state = "initial";
 		$_SESSION['searchArr'] = array (
@@ -31,6 +37,7 @@
 	// $entityArray[$_POST['entity']] = $_POST['entityvalue'];
 	// $entityArray[$_POST['entity2']] = $_POST['entityvalue2'];
 
+	//get json from nlu
 	if(isset($_POST['nlu'])) {
 		$json = $_POST['nlu'];
 		if($debug){
@@ -188,6 +195,13 @@
 	    display_list($_SESSION['restaurant_list']);
 	}
 
+	/**
+	 * Display a list of restaurant
+	 * 
+	 * @param    $arr       The list of restaurants to display
+	 */
+
+
 	function display_list($arr){
 
 		echo "<table class=\"restauranttbl\">";
@@ -206,6 +220,12 @@
 		echo "</table>";
 	}
 
+	/**
+	 * Display a single restaurant
+	 * 
+	 * @param    $iten       The restaurants to display
+	 */
+
 	function display_restaurant($item){
 
 		echo "<table class=\"restauranttbl\">";
@@ -220,6 +240,11 @@
 		echo "</table>";
 	}
 
+	/**
+	 * Delete global information
+	 * 
+	 */
+
 	function reset_param(){
 		//empty the slots
 		$_SESSION['searchArr'] = array (
@@ -232,6 +257,13 @@
 		$_SESSION['selected_restaurant']  = array();
 	}
 
+	/**
+	 * Get system response
+	 * 
+	 * @param    $url       request to NLG
+	 * @param    $alt_response   alternative built-in response
+	 */
+
 	function get_system_response($url, $alt_response){
 		if($using_nlg){
 			$message_temp = get_nlg_response($url);
@@ -243,6 +275,13 @@
 		}
 		return $message_temp;	
 	}
+
+	/**
+	 * Get natural language generation response
+	 * 
+	 * @param    $url       request to NLG
+	 */
+
 	function get_nlg_response($url){
 		$url = str_replace(" ","%20", $url);
 		$ch = curl_init($url);
@@ -819,13 +858,13 @@
 		echo "<br>";
 	}
 
+	//Displaying phone number
 	if($phone_number){
 		echo "<table style=\"width: 400px;\" class=\"center\"><tr><td><img src=\"http://www.clker.com/cliparts/0/f/c/2/1195445181899094722molumen_phone_icon.svg.hi.png\" height=80 width =80/></td>";
 		echo "<td><a href=\"tel:" . $phone_not_display . "\">" . $phone_number . "</a></td></tr></table>";
 	}
-	if($address){
 
-	}
+	//Displaying hints
 	echo "<p style=\"color:black; font-family:monospace;\">";
 	if($newstate == "initial" || $newstate=="filtering"){
 		echo "Try \"Find me a Starbucks\" or \"Chinese restaurants in San Francisco\"";
@@ -838,13 +877,14 @@
 	}
 	echo "To go back, say \"go back\" or \"start over\" to start a new search.  Or you can say \"I'm done\" when you are finished.</p><br>";
 
+	//Clean up system response for TTS
 	$_SESSION['message'] = str_replace("'","\\'", $_SESSION['message']);
 	$_SESSION['message'] = str_replace("\"","\\\"", $_SESSION['message']);
 	$_SESSION['message']= str_replace("\n", "", $_SESSION['message']);
 	$_SESSION['message'] = str_replace("\r", "", $_SESSION['message']);
 	$_SESSION['message'] = str_replace("\t", "", $_SESSION['message']);
-	//echo  "<script> speechSynthesis.speak(SpeechSynthesisUtterance('Hello World'));</script>";
+
+	//Text to Speech
 	echo  "<button id=\"speak\" onclick=\"speechSynthesis.speak(new SpeechSynthesisUtterance('" . $_SESSION['message'] . "'));\" ><img src=\"http://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Speaker_Icon.svg/1024px-Speaker_Icon.svg.png\" height=40 width=40></button>";
-	//echo "<script>setTimeout(\"location.href = 'DMtest.php?words=" . $_SESSION['message'] . "';\",1500);</script>";
 
 ?>

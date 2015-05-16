@@ -7,18 +7,18 @@ FoodSpeak is a web-based multimodal spoken dialogue system that enables users to
 Directory Structure
 ------
 
-+-- _NLG  
-+-- _dialogueManager  
-|   +-- lib (various style and authorization files)  
-|   +-- DM.php (Source code for the dialogue manager. This version uses baseline NLG)  
-|   +-- DM1.php (Source code for the dialogue manager. This version uses Ratcliff/Obershelp based NLG)  
-|   +-- DM2.php (Source code for the dialogue manager. This version uses Edit Distance based NLG)  
-|   +-- DMtest.php (A interface for testing the dialogue manager directly without speech input)  
-|   +-- requirements.txt (requirement file for using Yelp API)  
-+-- _microphone (microphone API provided by Wit.AI that enables interaction with our Wit.AI instance)  
-+-- _index.php (Main page of our web application. This version uses baseline NLG)  
-+-- _index1.php (Main page of our web application. This version uses Ratcliff/Obershelp based NLG)  
-+-- _index2.php (Main page of our web application. This version uses Edit Distance based NLG)  
++-- NLG/  
++-- dialogueManager/  
+|-------+-- lib/ (various style and authorization files)  
+|-------+-- DM.php (Source code for the dialogue manager. This version uses baseline NLG)  
+|-------+-- DM1.php (Source code for the dialogue manager. This version uses Ratcliff/Obershelp based NLG)  
+|-------+-- DM2.php (Source code for the dialogue manager. This version uses Edit Distance based NLG)  
+|-------+-- DMtest.php (A interface for testing the dialogue manager directly without speech input)  
+|-------+-- requirements.txt (requirement file for using Yelp API)  
++-- microphone/ (microphone SDK provided by Wit.AI that enables interaction with our Wit.AI instance)  
++-- index.php (Main page of our web application. This version uses baseline NLG)  
++-- index1.php (Main page of our web application. This version uses Ratcliff/Obershelp based NLG)  
++-- index2.php (Main page of our web application. This version uses Edit Distance based NLG)  
 
 
 Motivation
